@@ -2,7 +2,7 @@
 // Combines IndexedDB persistent local database storage + Cloud Firestore sync
 import { INITIAL_DEALS } from '../data/initialDeals';
 
-const DB_NAME = 'findcheap_persistent_db_v4';
+const DB_NAME = 'findcheap_persistent_db_v5';
 
 // Get all stored deals (Merges seed deals with user-posted deals in persistent database)
 export async function getStoredDeals() {

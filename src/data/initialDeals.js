@@ -11,16 +11,28 @@ export const CATEGORIES = [
 
 export const CITIES = [
   { name: 'Toronto, ON', lat: 43.6532, lng: -79.3832 },
+  { name: 'Mississauga, ON', lat: 43.5890, lng: -79.6441 },
+  { name: 'Brampton, ON', lat: 43.7315, lng: -79.7624 },
+  { name: 'Oakville, ON', lat: 43.4675, lng: -79.6877 },
+  { name: 'Burlington, ON', lat: 43.3255, lng: -79.7990 },
+  { name: 'Milton, ON', lat: 43.5183, lng: -79.8774 },
+  { name: 'Hamilton, ON', lat: 43.2557, lng: -79.8711 },
+  { name: 'Kitchener, ON', lat: 43.4516, lng: -80.4925 },
+  { name: 'Waterloo, ON', lat: 43.4643, lng: -80.5204 },
+  { name: 'Guelph, ON', lat: 43.5448, lng: -80.2482 },
+  { name: 'Markham, ON', lat: 43.8561, lng: -79.3370 },
+  { name: 'Richmond Hill, ON', lat: 43.8828, lng: -79.4403 },
+  { name: 'Vaughan, ON', lat: 43.8563, lng: -79.5085 },
+  { name: 'Oshawa, ON', lat: 43.8971, lng: -78.8658 },
   { name: 'Vancouver, BC', lat: 49.2827, lng: -123.1207 },
   { name: 'Montreal, QC', lat: 45.5017, lng: -73.5673 },
   { name: 'Calgary, AB', lat: 51.0447, lng: -114.0719 },
-  { name: 'Ottawa, ON', lat: 45.4215, lng: -75.6972 },
-  { name: 'Edmonton, AB', lat: 53.5461, lng: -113.4938 }
+  { name: 'Ottawa, ON', lat: 45.4215, lng: -75.6972 }
 ];
 
 export const INITIAL_DEALS = [
   {
-    id: "deal-ca-1",
+    id: "deal-gta-1",
     title: "$2.99 Crispy BBQ Pork Bánh Mì Sandwich",
     storeName: "Bánh Mì Ba Lẹ",
     category: "food",
@@ -43,10 +55,10 @@ export const INITIAL_DEALS = [
       avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&auto=format&fit=crop&q=80",
       badge: "Spadina Scout 🥖"
     },
-    tags: ["BanhMi", "Chinatown", "Under$3", "Vietnamese"],
+    tags: ["BanhMi", "Chinatown", "Toronto", "Under$3"],
     reviews: [
       {
-        id: "rev-ca-101",
+        id: "rev-gta-101",
         userName: "Chloe Tremblay",
         userAvatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=120&auto=format&fit=crop&q=80",
         rating: 5,
@@ -60,276 +72,274 @@ export const INITIAL_DEALS = [
     ]
   },
   {
-    id: "deal-ca-2",
-    title: "$4.50 Authentic Quebec Curd & Gravy Poutine",
-    storeName: "Chez Claudette",
+    id: "deal-gta-2",
+    title: "$2.50 Fresh Hot Samosa Chaat Plate",
+    storeName: "Desi Mandi & Sweets",
     category: "food",
-    price: 4.50,
-    regularPrice: 11.50,
-    description: "Squeaky fresh St-Albert cheese curds melted over piping hot hand-cut Yukon gold fries and dark rich gravy.",
-    address: "39 Rue Laurier E, Montréal, QC H2T 1E4",
-    lat: 45.5262,
-    lng: -73.5902,
-    city: "Montreal, QC",
+    price: 2.50,
+    regularPrice: 6.50,
+    description: "Two crispy potato samosas crushed and smothered in hot chickpea curry, sweet tamarind, mint yogurt and chopped coriander.",
+    address: "2410 Fairview St, Burlington, ON L7R 2E4",
+    lat: 43.3340,
+    lng: -79.8050,
+    city: "Burlington, ON",
     images: [
-      "https://images.unsplash.com/photo-1586805608485-aaa3365b315b?w=800&auto=format&fit=crop&q=80",
-      "https://images.unsplash.com/photo-1576107232684-1279f3908594?w=800&auto=format&fit=crop&q=80"
+      "https://images.unsplash.com/photo-1601050690597-df0568f70950?w=800&auto=format&fit=crop&q=80",
+      "https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=800&auto=format&fit=crop&q=80"
     ],
-    upvotes: 490,
-    downvotes: 8,
-    createdAt: "2026-09-29T19:30:00Z",
+    upvotes: 420,
+    downvotes: 3,
+    createdAt: "2026-09-30T14:30:00Z",
     postedBy: {
-      name: "MTL_PoutineHunter",
+      name: "BurlingtonEats",
       avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&auto=format&fit=crop&q=80",
-      badge: "Poutine Master 🍟"
+      badge: "Burlington Scout 🥟"
     },
-    tags: ["Poutine", "Montreal", "LateNight", "Plateau"],
+    tags: ["Samosa", "Burlington", "DesiMandi", "Indian"],
     reviews: [
       {
-        id: "rev-ca-201",
-        userName: "Marc-Antoine",
+        id: "rev-gta-201",
+        userName: "Rajesh P.",
         userAvatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=120&auto=format&fit=crop&q=80",
         rating: 5,
         date: "2 days ago",
-        title: "Vrai fromage en grain qui fait couik!",
-        comment: "The cheese curds are huge and super squeaky. Huge portion for under $5!",
-        helpfulCount: 62,
+        title: "Tastes just like Delhi street food!",
+        comment: "Tangy, spicy, warm. Unbeatable price for afternoon tea snack.",
+        helpfulCount: 52,
         photos: [],
         verifiedVisit: true
       }
     ]
   },
   {
-    id: "deal-ca-3",
-    title: "$3.50 Pork & Chive Pan-Fried Dumplings (6 Pcs)",
-    storeName: "Dumpling King Richmond",
+    id: "deal-gta-3",
+    title: "$3.99 Loaded Chicken Shawarma Wrap",
+    storeName: "Pita Land Mississauga",
     category: "food",
-    price: 3.50,
-    regularPrice: 9.00,
-    description: "Juicy pan-fried northern style dumplings with crispy golden lace bottom and chili oil dipping sauce.",
-    address: "4940 No. 3 Rd, Richmond, BC V6X 3A6",
-    lat: 49.1764,
-    lng: -123.1362,
-    city: "Vancouver, BC",
+    price: 3.99,
+    regularPrice: 11.00,
+    description: "Student special wrap loaded with rotisserie carved garlic chicken, pickled turnips, spicy garlic sauce and crispy fries inside.",
+    address: "3050 Hurontario St, Mississauga, ON L5B 361",
+    lat: 43.5855,
+    lng: -79.6402,
+    city: "Mississauga, ON",
     images: [
-      "https://images.unsplash.com/photo-1541696432-82c6da8ce7bf?w=800&auto=format&fit=crop&q=80"
-    ],
-    upvotes: 275,
-    downvotes: 3,
-    createdAt: "2026-09-28T14:10:00Z",
-    postedBy: {
-      name: "VanFoodie_Lin",
-      avatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=120&auto=format&fit=crop&q=80",
-      badge: "Richmond Scout 🥟"
-    },
-    tags: ["Dumplings", "Richmond", "PanFried", "Vancouver"],
-    reviews: [
-      {
-        id: "rev-ca-301",
-        userName: "Ethan Wong",
-        userAvatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=120&auto=format&fit=crop&q=80",
-        rating: 5,
-        date: "3 days ago",
-        title: "So juicy be careful on first bite!",
-        comment: "Great bottom crunch and amazing chili oil.",
-        helpfulCount: 28,
-        photos: [],
-        verifiedVisit: true
-      }
-    ]
-  },
-  {
-    id: "deal-ca-4",
-    title: "$2.00 Warm Wood-Fired Montreal Bagels (Half Dozen)",
-    storeName: "St-Viateur Bagel Shop",
-    category: "groceries",
-    price: 2.00,
-    regularPrice: 7.20,
-    description: "Boiled in honey water & wood-fired on maple planks! Sesame seed bagels warm straight out of the oven.",
-    address: "263 Rue Saint-Viateur O, Montréal, QC H2V 1Y1",
-    lat: 45.5228,
-    lng: -73.6022,
-    city: "Montreal, QC",
-    images: [
-      "https://images.unsplash.com/photo-1585478259715-876a6a81ae08?w=800&auto=format&fit=crop&q=80",
-      "https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=800&auto=format&fit=crop&q=80"
-    ],
-    upvotes: 410,
-    downvotes: 5,
-    createdAt: "2026-09-27T08:30:00Z",
-    postedBy: {
-      name: "MileEnd_Local",
-      avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=120&auto=format&fit=crop&q=80",
-      badge: "Bagel Boss 🥯"
-    },
-    tags: ["Bagel", "Montreal", "MileEnd", "WoodFired"],
-    reviews: [
-      {
-        id: "rev-ca-401",
-        userName: "Sophie B.",
-        userAvatar: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=120&auto=format&fit=crop&q=80",
-        rating: 5,
-        date: "4 days ago",
-        title: "Smells like heaven!",
-        comment: "Nothing compares to a hot St-Viateur bagel eaten right on the sidewalk.",
-        helpfulCount: 39,
-        photos: [],
-        verifiedVisit: true
-      }
-    ]
-  },
-  {
-    id: "deal-ca-5",
-    title: "$3.00 Vintage 90s Flannels & Denim Rack",
-    storeName: "Courage My Love Vintage",
-    category: "thrift",
-    price: 3.00,
-    regularPrice: 35.00,
-    description: "Clearance rack outside front door in Kensington Market! Heavy wool flannels, retro graphic tees and denim.",
-    address: "14 Kensington Ave, Toronto, ON M5T 2K1",
-    lat: 43.6548,
-    lng: -79.4002,
-    city: "Toronto, ON",
-    images: [
-      "https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=800&auto=format&fit=crop&q=80",
-      "https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?w=800&auto=format&fit=crop&q=80"
+      "https://images.unsplash.com/photo-1561651823-34feb02250e4?w=800&auto=format&fit=crop&q=80"
     ],
     upvotes: 380,
-    downvotes: 7,
-    createdAt: "2026-09-26T15:45:00Z",
+    downvotes: 5,
+    createdAt: "2026-09-29T18:00:00Z",
     postedBy: {
-      name: "KensingtonThrifter",
-      avatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=120&auto=format&fit=crop&q=80",
-      badge: "Vintage Queen 🧥"
+      name: "Sauga_Foodie",
+      avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=120&auto=format&fit=crop&q=80",
+      badge: "Shawarma King 🌯"
     },
-    tags: ["Thrift", "Kensington", "Vintage", "Flannels"],
+    tags: ["Shawarma", "Mississauga", "Sauga", "Wrap"],
     reviews: [
       {
-        id: "rev-ca-501",
-        userName: "Maya S.",
-        userAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&auto=format&fit=crop&q=80",
-        rating: 5,
-        date: "1 week ago",
-        title: "Scored an authentic oversized flannel",
-        comment: "Super cool staff and amazing vintage jewelry too.",
-        helpfulCount: 41,
-        photos: [],
-        verifiedVisit: true
-      }
-    ]
-  },
-  {
-    id: "deal-ca-6",
-    title: "$4.00 Local Alberta Craft Draft & Free Loaded Nachos",
-    storeName: "Ship & Anchor Pub",
-    category: "happyhour",
-    price: 4.00,
-    regularPrice: 13.00,
-    description: "Daily Happy Hour 3 PM - 6 PM! All Calgary craft beers $4 a pint + complimentary plate of jalapeno cheese nachos.",
-    address: "534 17 Ave SW, Calgary, AB T2S 0B1",
-    lat: 51.0378,
-    lng: -114.0742,
-    city: "Calgary, AB",
-    images: [
-      "https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=800&auto=format&fit=crop&q=80",
-      "https://images.unsplash.com/photo-1572116469696-31de0f17cc34?w=800&auto=format&fit=crop&q=80"
-    ],
-    upvotes: 310,
-    downvotes: 6,
-    createdAt: "2026-09-25T17:00:00Z",
-    postedBy: {
-      name: "CalgaryBeerFan",
-      avatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=120&auto=format&fit=crop&q=80",
-      badge: "17th Ave Legend 🍺"
-    },
-    tags: ["Beer", "Calgary", "17thAve", "Nachos"],
-    reviews: [
-      {
-        id: "rev-ca-601",
-        userName: "Tyler K.",
+        id: "rev-gta-301",
+        userName: "Aamir H.",
         userAvatar: "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=120&auto=format&fit=crop&q=80",
         rating: 5,
-        date: "5 days ago",
-        title: "Best patio in Calgary!",
-        comment: "Great crowd, sun shines right on the patio during happy hour.",
-        helpfulCount: 33,
+        date: "3 days ago",
+        title: "Garlic sauce is top tier",
+        comment: "Massive wrap for $3.99. Show student ID!",
+        helpfulCount: 38,
         photos: [],
         verifiedVisit: true
       }
     ]
   },
   {
-    id: "deal-ca-7",
-    title: "$1.99 Fresh BeaverTails Cinnamon & Sugar Pastry",
-    storeName: "BeaverTails ByWard Market",
+    id: "deal-gta-4",
+    title: "$1.00 Hot Butter Tarts & Artisan Donuts",
+    storeName: "Main Street Bakery Oakville",
     category: "food",
-    price: 1.99,
-    regularPrice: 7.50,
-    description: "Student card discount deal! Hot fried whole-wheat dough stretched like a beaver tail, coated in cinnamon sugar and lemon juice.",
-    address: "69 George St, Ottawa, ON K1N 1K2",
-    lat: 45.4278,
-    lng: -75.6924,
-    city: "Ottawa, ON",
+    price: 1.00,
+    regularPrice: 4.50,
+    description: "End of day clearance (after 5 PM)! Flaky butter tarts with pecan filling and maple glazed donuts.",
+    address: "181 Lakeshore Rd E, Oakville, ON L6J 1H6",
+    lat: 43.4452,
+    lng: -79.6698,
+    city: "Oakville, ON",
     images: [
       "https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=800&auto=format&fit=crop&q=80"
     ],
     upvotes: 290,
     downvotes: 2,
-    createdAt: "2026-09-30T13:20:00Z",
+    createdAt: "2026-09-28T16:30:00Z",
     postedBy: {
-      name: "CapitalEats",
-      avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=120&auto=format&fit=crop&q=80",
-      badge: "Ottawa Scout 🦫"
+      name: "Oakville_Mom",
+      avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=120&auto=format&fit=crop&q=80",
+      badge: "Bakery Scout 🍩"
     },
-    tags: ["BeaverTails", "Ottawa", "BywardMarket", "Dessert"],
+    tags: ["ButterTart", "Bakery", "Oakville", "Dessert"],
     reviews: [
       {
-        id: "rev-ca-701",
-        userName: "Daniel Roy",
-        userAvatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&auto=format&fit=crop&q=80",
+        id: "rev-gta-401",
+        userName: "Emily Vance",
+        userAvatar: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=120&auto=format&fit=crop&q=80",
         rating: 5,
-        date: "2 days ago",
-        title: "Crispy outer crust and soft inside",
-        comment: "Classic Canadian treat. Show student ID for the $1.99 promo.",
-        helpfulCount: 19,
+        date: "4 days ago",
+        title: "Gooey center butter tart!",
+        comment: "Best treat in downtown Oakville.",
+        helpfulCount: 29,
         photos: [],
         verifiedVisit: true
       }
     ]
   },
   {
-    id: "deal-ca-8",
-    title: "$1.50 Pour-Over Coffee & Almond Muffin Special",
-    storeName: "Revolver Coffee",
+    id: "deal-gta-5",
+    title: "$4.50 Local Hamilton Craft Pint & Garlic Pretzels",
+    storeName: "Collective Arts Brewing Taproom",
+    category: "happyhour",
+    price: 4.50,
+    regularPrice: 12.50,
+    description: "Happy Hour Thursdays 4 PM - 7 PM! All flagship IPAs, sours and stouts $4.50 + hot beer-salted pretzel.",
+    address: "207 Burlington St E, Hamilton, ON L8L 4H2",
+    lat: 43.2705,
+    lng: -79.8542,
+    city: "Hamilton, ON",
+    images: [
+      "https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=800&auto=format&fit=crop&q=80",
+      "https://images.unsplash.com/photo-1572116469696-31de0f17cc34?w=800&auto=format&fit=crop&q=80"
+    ],
+    upvotes: 410,
+    downvotes: 4,
+    createdAt: "2026-09-27T17:15:00Z",
+    postedBy: {
+      name: "Hamilton_Craft",
+      avatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=120&auto=format&fit=crop&q=80",
+      badge: "Steel City Pint 🍺"
+    },
+    tags: ["Beer", "Hamilton", "HappyHour", "CraftBeer"],
+    reviews: [
+      {
+        id: "rev-gta-501",
+        userName: "Dave Miller",
+        userAvatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&auto=format&fit=crop&q=80",
+        rating: 5,
+        date: "5 days ago",
+        title: "Awesome art and beer",
+        comment: "Great patio in North End Hamilton.",
+        helpfulCount: 44,
+        photos: [],
+        verifiedVisit: true
+      }
+    ]
+  },
+  {
+    id: "deal-gta-6",
+    title: "$1.50 Double Espresso & Fresh Croissant Combo",
+    storeName: "Bauer Bakery & Cafe",
     category: "drinks",
     price: 1.50,
-    regularPrice: 6.00,
-    description: "Early bird coffee run (8 AM - 10 AM)! Single origin Ethiopian brew with house baked berry almond muffin.",
-    address: "325 Cambie St, Vancouver, BC V6B 2N4",
-    lat: 49.2831,
-    lng: -123.1118,
-    city: "Vancouver, BC",
+    regularPrice: 5.50,
+    description: "UW & Laurier student early morning special (8 AM - 10 AM)! Rich espresso with butter croissant.",
+    address: "187 King St S, Waterloo, ON N2J 1R1",
+    lat: 43.4618,
+    lng: -80.5218,
+    city: "Waterloo, ON",
     images: [
       "https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=800&auto=format&fit=crop&q=80"
     ],
-    upvotes: 215,
-    downvotes: 1,
-    createdAt: "2026-09-29T08:00:00Z",
+    upvotes: 310,
+    downvotes: 2,
+    createdAt: "2026-09-30T08:15:00Z",
     postedBy: {
-      name: "GastownBarista",
+      name: "UW_StudyGrind",
       avatar: "https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=120&auto=format&fit=crop&q=80",
-      badge: "Gastown Coffee ☕"
+      badge: "Waterloo Coffee ☕"
     },
-    tags: ["Coffee", "Gastown", "Vancouver", "Pastry"],
+    tags: ["Coffee", "Waterloo", "UW", "Croissant"],
     reviews: [
       {
-        id: "rev-ca-801",
-        userName: "Hannah M.",
+        id: "rev-gta-601",
+        userName: "Jessica Chen",
+        userAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&auto=format&fit=crop&q=80",
+        rating: 5,
+        date: "Yesterday",
+        title: "Saved my midterms week!",
+        comment: "Flaky croissant and strong roast.",
+        helpfulCount: 31,
+        photos: [],
+        verifiedVisit: true
+      }
+    ]
+  },
+  {
+    id: "deal-gta-7",
+    title: "$3.50 Steam Pork Dumplings & Dim Sum Plate",
+    storeName: "Ding Tai Fung Markham",
+    category: "food",
+    price: 3.50,
+    regularPrice: 9.50,
+    description: "Freshly steamed soup dumplings (Xiao Long Bao) loaded with flavorful pork broth and ginger soy vinegar.",
+    address: "3235 Hwy 7, Markham, ON L3R 3P3",
+    lat: 43.8522,
+    lng: -79.3524,
+    city: "Markham, ON",
+    images: [
+      "https://images.unsplash.com/photo-1541696432-82c6da8ce7bf?w=800&auto=format&fit=crop&q=80"
+    ],
+    upvotes: 490,
+    downvotes: 6,
+    createdAt: "2026-09-29T13:00:00Z",
+    postedBy: {
+      name: "MarkhamEats",
+      avatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=120&auto=format&fit=crop&q=80",
+      badge: "Dim Sum Guru 🥟"
+    },
+    tags: ["DimSum", "Markham", "Dumplings", "Hwy7"],
+    reviews: [
+      {
+        id: "rev-gta-701",
+        userName: "Kevin Zhang",
+        userAvatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&auto=format&fit=crop&q=80",
+        rating: 5,
+        date: "2 days ago",
+        title: "Juicy broth inside each dumpling!",
+        comment: "Authentic taste, rapid service.",
+        helpfulCount: 56,
+        photos: [],
+        verifiedVisit: true
+      }
+    ]
+  },
+  {
+    id: "deal-gta-8",
+    title: "$3.00 Vintage Denim Jackets & Leather Rack",
+    storeName: "Value Village Milton Clearance",
+    category: "thrift",
+    price: 3.00,
+    regularPrice: 40.00,
+    description: "Discount tag color rollouts every Tuesday morning! Found Levi's denim jackets and retro graphic sweatshirts under $4.",
+    address: "1030 Kennedy Rd, Milton, ON L9T 0X8",
+    lat: 43.5240,
+    lng: -79.8690,
+    city: "Milton, ON",
+    images: [
+      "https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=800&auto=format&fit=crop&q=80"
+    ],
+    upvotes: 260,
+    downvotes: 1,
+    createdAt: "2026-09-28T11:20:00Z",
+    postedBy: {
+      name: "MiltonThrifter",
+      avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=120&auto=format&fit=crop&q=80",
+      badge: "Milton Thrift 🧥"
+    },
+    tags: ["Thrift", "Milton", "Vintage", "Clearance"],
+    reviews: [
+      {
+        id: "rev-gta-801",
+        userName: "Sarah Jenkins",
         userAvatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=120&auto=format&fit=crop&q=80",
         rating: 5,
         date: "3 days ago",
-        title: "Exceptional roast quality",
-        comment: "Tastes like floral jasmine and stone fruit. Super cozy brick interior.",
+        title: "Found a 90s bomber jacket for $3!",
+        comment: "Go early on Tuesday mornings.",
         helpfulCount: 22,
         photos: [],
         verifiedVisit: true
@@ -337,78 +347,78 @@ export const INITIAL_DEALS = [
     ]
   },
   {
-    id: "deal-ca-9",
-    title: "$0.99 Organic BC Apples & Fresh Berries",
-    storeName: "Old Strathcona Farmers' Market",
+    id: "deal-gta-9",
+    title: "$2.00 Fresh Farmers Market Apples & Berries",
+    storeName: "Kitchener Farmers' Market",
     category: "groceries",
-    price: 0.99,
-    regularPrice: 3.49,
-    description: "Saturday morning local grower specials! Crisp Ambrosia apples and organic blueberries direct from Okanagan orchards.",
-    address: "10310 83 Ave NW, Edmonton, AB T6E 2C6",
-    lat: 53.5186,
-    lng: -113.4965,
-    city: "Edmonton, AB",
+    price: 2.00,
+    regularPrice: 6.00,
+    description: "Saturday morning discount produce baskets! Fresh Honeycrisp apples, strawberries and local Mennonite cheese curds.",
+    address: "300 King St E, Kitchener, ON N2H 2L3",
+    lat: 43.4485,
+    lng: -80.4852,
+    city: "Kitchener, ON",
     images: [
       "https://images.unsplash.com/photo-1523049673857-eb18f1d7b578?w=800&auto=format&fit=crop&q=80"
     ],
-    upvotes: 160,
+    upvotes: 275,
     downvotes: 1,
-    createdAt: "2026-09-28T09:45:00Z",
+    createdAt: "2026-09-27T10:00:00Z",
     postedBy: {
-      name: "YEG_Organic",
-      avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&auto=format&fit=crop&q=80",
-      badge: "Edmonton Farmer 🍎"
+      name: "KW_Organic",
+      avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=120&auto=format&fit=crop&q=80",
+      badge: "KW Market 🍎"
     },
-    tags: ["Apples", "Organic", "Edmonton", "Produce"],
+    tags: ["Apples", "Kitchener", "Groceries", "Market"],
     reviews: [
       {
-        id: "rev-ca-901",
-        userName: "Kevin P.",
-        userAvatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=120&auto=format&fit=crop&q=80",
+        id: "rev-gta-901",
+        userName: "Ben Stauffer",
+        userAvatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&auto=format&fit=crop&q=80",
         rating: 5,
         date: "4 days ago",
-        title: "Sweet and crunchy!",
-        comment: "Supports local farmers and costs half of big chain supermarkets.",
-        helpfulCount: 14,
+        title: "Super fresh produce",
+        comment: "Best place for weekend grocery shopping in KW.",
+        helpfulCount: 18,
         photos: [],
         verifiedVisit: true
       }
     ]
   },
   {
-    id: "deal-ca-10",
-    title: "FREE Community Zines & Book Swap",
-    storeName: "Toronto Reference Library Box",
+    id: "deal-gta-10",
+    title: "FREE Community Art & Book Swap Box",
+    storeName: "Brampton Downtown Little Library",
     category: "freebies",
     price: 0.00,
-    regularPrice: 18.00,
-    description: "Free indie comics, local music zines, paperbacks and graphic novels. Take one, leave one!",
-    address: "789 Yonge St, Toronto, ON M4W 2G8",
-    lat: 43.6718,
-    lng: -79.3867,
-    city: "Toronto, ON",
+    regularPrice: 15.00,
+    description: "Free novels, children books, zines, and handmade local art postcards. Take a book, leave a book!",
+    address: "9 Wellington St E, Brampton, ON L6W 1Y1",
+    lat: 43.6842,
+    lng: -79.7582,
+    city: "Brampton, ON",
     images: [
       "https://images.unsplash.com/photo-1512820790803-83ca734da794?w=800&auto=format&fit=crop&q=80"
     ],
-    upvotes: 230,
+    upvotes: 210,
     downvotes: 0,
-    createdAt: "2026-09-30T15:00:00Z",
+    createdAt: "2026-09-29T12:00:00Z",
     postedBy: {
-      name: "Yonge_ArtLover",
-      avatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=120&auto=format&fit=crop&q=80",
-      badge: "Library Hero 📚"
+      name: "Brampton_Reader",
+      avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&auto=format&fit=crop&q=80",
+      badge: "Brampton Angel 📚"
     },
-    tags: ["Free", "Books", "Zines", "Yorkville"],
+    tags: ["Free", "Books", "Brampton", "Community"],
     reviews: [
       {
-        id: "rev-ca-1001",
-        userName: "Lucas G.",
-        userAvatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&auto=format&fit=crop&q=80",
+        id: "rev-gta-1001",
+        userName: "Gurpreet S.",
+        userAvatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=120&auto=format&fit=crop&q=80",
         rating: 5,
-        date: "Yesterday",
-        title: "Found rare Toronto history zine!",
-        comment: "Great spot near Bloor-Yonge station.",
-        helpfulCount: 25,
+        date: "3 days ago",
+        title: "Great neighborhood spot",
+        comment: "Found a graphic novel in awesome condition!",
+        helpfulCount: 20,
         photos: [],
         verifiedVisit: true
       }
