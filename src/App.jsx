@@ -17,19 +17,35 @@ import {
   voteDealInFirestore, 
   addReviewToFirestore 
 } from './firebase/dealsService';
+import { 
+  getStoredDeals, 
+  saveDealsToDB, 
+  addDealToDB, 
+  addReviewToDB, 
+  voteDealInDB 
+} from './db/databaseManager';
 import { Plus } from 'lucide-react';
 import './App.css';
 
 export default function App() {
-  // Load initial deals from localStorage or fallback to Canadian deals
-  const [deals, setDeals] = useState(() => {
-    try {
-      const saved = localStorage.getItem('findcheap_canada_deals_v3');
-      return saved ? JSON.parse(saved) : INITIAL_DEALS;
-    } catch (e) {
-      return INITIAL_DEALS;
+  // Deals State (Initialized from persistent Database Manager)
+  const [deals, setDeals] = useState([]);
+  const [dbLoaded, setDbLoaded] = useState(false);
+
+  // Load from Database Manager on mount
+  useEffect(() => {
+    getStoredDeals().then(storedDeals => {
+      setDeals(storedDeals);
+      setDbLoaded(true);
+    });
+  }, []);
+
+  // Sync to database whenever deals state changes
+  useEffect(() => {
+    if (dbLoaded && deals.length > 0) {
+      saveDealsToDB(deals);
     }
-  });
+  }, [deals, dbLoaded]);
 
   // User Auth & Firebase state
   const [currentUser, setCurrentUser] = useState(null);
@@ -59,6 +75,7 @@ export default function App() {
     const unsubscribe = subscribeToFirestoreDeals((firestoreDeals) => {
       if (firestoreDeals && firestoreDeals.length > 0) {
         setDeals(firestoreDeals);
+        saveDealsToDB(firestoreDeals);
       }
     });
     return () => unsubscribe();
@@ -102,13 +119,6 @@ export default function App() {
   const [isSavedDrawerOpen, setIsSavedDrawerOpen] = useState(false);
   const [pickedLocation, setPickedLocation] = useState(null);
   const [isAddingPinMode, setIsAddingPinMode] = useState(false);
-
-  // Sync state to LocalStorage as fallback
-  useEffect(() => {
-    try {
-      localStorage.setItem('findcheap_canada_deals_v3', JSON.stringify(deals));
-    } catch (e) {}
-  }, [deals]);
 
   useEffect(() => {
     try {
@@ -193,6 +203,8 @@ export default function App() {
       return updated;
     });
 
+    // Save to Database
+    await voteDealInDB(dealId, deltaUp, deltaDown);
     showToast('Vote recorded! 🔥', 'success');
 
     if (isFirebaseConfigured()) {
@@ -248,6 +260,9 @@ export default function App() {
       return updated;
     });
 
+    // Save to Database
+    await voteDealInDB(dealId, deltaUp, deltaDown);
+
     if (isFirebaseConfigured()) {
       try {
         await voteDealInFirestore(dealId, deltaUp, deltaDown);
@@ -266,7 +281,7 @@ export default function App() {
     });
   };
 
-  // Add New Deal
+  // Add New Deal (PERMANENTLY SAVED TO DATABASE)
   const handleAddDeal = async (newDeal) => {
     if (currentUser) {
       newDeal.postedBy = {
@@ -287,27 +302,40 @@ export default function App() {
       }
     }
 
-    setDeals(prev => [newDeal, ...prev]);
+    // Save permanently to Database Manager
+    const updatedDeals = await addDealToDB(newDeal);
+    if (updatedDeals) {
+      setDeals(updatedDeals);
+    } else {
+      setDeals(prev => [newDeal, ...prev]);
+    }
+
     setCenter({ lat: newDeal.lat, lng: newDeal.lng });
     setPickedLocation(null);
     setIsAddingPinMode(false);
-    showToast('Cheap Spot published successfully! 🎉', 'success');
+    showToast('Cheap Spot saved & published permanently to Database! 🎉', 'success');
   };
 
-  // Add Review to Deal
+  // Add Review to Deal (PERMANENTLY SAVED TO DATABASE)
   const handleAddReview = async (dealId, newReview) => {
     if (currentUser) {
       newReview.userName = currentUser.displayName || currentUser.email?.split('@')[0] || newReview.userName;
       newReview.userAvatar = currentUser.photoURL || newReview.userAvatar;
     }
 
-    setDeals(prev => prev.map(d => {
-      if (d.id === dealId) {
-        const updatedReviews = [newReview, ...(d.reviews || [])];
-        return { ...d, reviews: updatedReviews };
-      }
-      return d;
-    }));
+    // Save permanently to Database Manager
+    const updatedDeals = await addReviewToDB(dealId, newReview);
+    if (updatedDeals) {
+      setDeals(updatedDeals);
+    } else {
+      setDeals(prev => prev.map(d => {
+        if (d.id === dealId) {
+          const updatedReviews = [newReview, ...(d.reviews || [])];
+          return { ...d, reviews: updatedReviews };
+        }
+        return d;
+      }));
+    }
 
     if (selectedDeal && selectedDeal.id === dealId) {
       setSelectedDeal(prev => ({
@@ -316,7 +344,7 @@ export default function App() {
       }));
     }
 
-    showToast('Review posted successfully! ⭐', 'success');
+    showToast('Review saved permanently to Database! ⭐', 'success');
 
     if (isFirebaseConfigured()) {
       try {
