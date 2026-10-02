@@ -8,6 +8,7 @@ import ItemDetailModal from './components/ItemDetailModal';
 import AddDealModal from './components/AddDealModal';
 import SavedDrawer from './components/SavedDrawer';
 import AuthModal from './components/AuthModal';
+import Toast from './components/Toast';
 import { isFirebaseConfigured } from './firebase/config';
 import { subscribeToAuth, logoutUser } from './firebase/authService';
 import { 
@@ -33,6 +34,15 @@ export default function App() {
   // User Auth & Firebase state
   const [currentUser, setCurrentUser] = useState(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+
+  // Toast Notification state
+  const [toast, setToast] = useState({ message: '', type: 'success' });
+  const showToast = (message, type = 'success') => {
+    setToast({ message, type });
+  };
+
+  // User Geolocation state
+  const [userLocation, setUserLocation] = useState(null);
 
   // Subscribe to Firebase Auth changes
   useEffect(() => {
@@ -116,6 +126,7 @@ export default function App() {
   const handleCityChange = (city) => {
     setSelectedCity(city);
     setCenter({ lat: city.lat, lng: city.lng });
+    showToast(`Centered map to ${city.name}`, 'info');
   };
 
   // User Geolocation
@@ -125,18 +136,20 @@ export default function App() {
         (pos) => {
           const userCenter = { lat: pos.coords.latitude, lng: pos.coords.longitude };
           setCenter(userCenter);
+          setUserLocation(userCenter);
           setSelectedCity({ name: 'Current Location', ...userCenter });
+          showToast('Located your position on the map! 📍', 'success');
         },
         () => {
-          alert('Could not access device location. Showing city center.');
+          showToast('Could not access device location. Showing city center.', 'error');
         }
       );
     } else {
-      alert('Geolocation is not supported by your browser.');
+      showToast('Geolocation is not supported by your browser.', 'error');
     }
   };
 
-  // Upvote Handler (syncs with Firestore if configured)
+  // Upvote Handler
   const handleUpvote = async (dealId) => {
     let deltaUp = 0;
     let deltaDown = 0;
@@ -179,6 +192,8 @@ export default function App() {
       else delete updated[dealId];
       return updated;
     });
+
+    showToast('Vote recorded! 🔥', 'success');
 
     if (isFirebaseConfigured()) {
       try {
@@ -244,12 +259,14 @@ export default function App() {
 
   // Toggle Save Deal
   const handleToggleSave = (dealId) => {
-    setSavedDealIds(prev => 
-      prev.includes(dealId) ? prev.filter(id => id !== dealId) : [...prev, dealId]
-    );
+    setSavedDealIds(prev => {
+      const isSaving = !prev.includes(dealId);
+      showToast(isSaving ? 'Spot saved to wishlist! 🔖' : 'Spot removed from wishlist', 'info');
+      return isSaving ? [...prev, dealId] : prev.filter(id => id !== dealId);
+    });
   };
 
-  // Add New Deal (Syncs to Firestore if configured)
+  // Add New Deal
   const handleAddDeal = async (newDeal) => {
     if (currentUser) {
       newDeal.postedBy = {
@@ -274,9 +291,10 @@ export default function App() {
     setCenter({ lat: newDeal.lat, lng: newDeal.lng });
     setPickedLocation(null);
     setIsAddingPinMode(false);
+    showToast('Cheap Spot published successfully! 🎉', 'success');
   };
 
-  // Add Review to Deal (Syncs to Firestore if configured)
+  // Add Review to Deal
   const handleAddReview = async (dealId, newReview) => {
     if (currentUser) {
       newReview.userName = currentUser.displayName || currentUser.email?.split('@')[0] || newReview.userName;
@@ -297,6 +315,8 @@ export default function App() {
         reviews: [newReview, ...(prev.reviews || [])]
       }));
     }
+
+    showToast('Review posted successfully! ⭐', 'success');
 
     if (isFirebaseConfigured()) {
       try {
@@ -333,6 +353,7 @@ export default function App() {
         })
       }));
     }
+    showToast('Marked review as helpful 👍', 'info');
   };
 
   // Handle Map Click (Drop Pin)
@@ -415,7 +436,10 @@ export default function App() {
         }}
         currentUser={currentUser}
         onOpenAuthModal={() => setIsAuthModalOpen(true)}
-        onLogout={logoutUser}
+        onLogout={() => {
+          logoutUser();
+          showToast('Signed out of FindCheap', 'info');
+        }}
       />
 
       {/* Category & Filters Bar */}
@@ -443,6 +467,12 @@ export default function App() {
               isAddingPinMode={isAddingPinMode ? (pickedLocation || center) : null}
               selectedCategory={selectedCategory}
               mapTheme={mapTheme}
+              userLocation={userLocation}
+              onToggleTheme={() => {
+                if (mapTheme === 'light') setMapTheme('dark');
+                else if (mapTheme === 'dark') setMapTheme('satellite');
+                else setMapTheme('light');
+              }}
             />
           </div>
         )}
@@ -482,6 +512,7 @@ export default function App() {
                     onUpvote={handleUpvote}
                     onDownvote={handleDownvote}
                     userVote={userVotes[deal.id]}
+                    currentCenter={center}
                   />
                 ))}
               </div>
@@ -523,6 +554,7 @@ export default function App() {
             setIsAddModalOpen(false);
             setIsAddingPinMode(true);
           }}
+          onShowToast={showToast}
         />
       )}
 
@@ -540,6 +572,13 @@ export default function App() {
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
         currentUser={currentUser}
+      />
+
+      {/* Toast Notification */}
+      <Toast 
+        message={toast.message} 
+        type={toast.type} 
+        onClose={() => setToast({ message: '', type: 'success' })} 
       />
     </div>
   );

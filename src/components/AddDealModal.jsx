@@ -3,24 +3,25 @@ import confetti from 'canvas-confetti';
 import { CATEGORIES, CITIES } from '../data/initialDeals';
 import { 
   X, MapPin, Upload, Camera, DollarSign, Tag, Image, 
-  Sparkles, Check, AlertCircle, Plus, Compass 
+  Sparkles, Check, AlertCircle, Plus, Compass, Search, Loader2 
 } from 'lucide-react';
 
 const SAMPLE_PRESET_IMAGES = [
-  { label: 'Taco / Street Food', url: 'https://images.unsplash.com/photo-1551504734-5ee1c4a1479b?w=800' },
+  { label: 'Bánh Mì / Sandwich', url: 'https://images.unsplash.com/photo-1509722747041-616f39b57569?w=800' },
+  { label: 'Poutine / Fries', url: 'https://images.unsplash.com/photo-1586805608485-aaa3365b315b?w=800' },
   { label: 'Dumplings / Asian Eats', url: 'https://images.unsplash.com/photo-1541696432-82c6da8ce7bf?w=800' },
+  { label: 'Wood-Fired Bagel', url: 'https://images.unsplash.com/photo-1585478259715-876a6a81ae08?w=800' },
   { label: 'Coffee & Pastry', url: 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=800' },
-  { label: 'Thrift Clothes / Jacket', url: 'https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=800' },
-  { label: 'Craft Beer / Cocktails', url: 'https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=800' },
-  { label: 'Electronics / Tech', url: 'https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=800' },
-  { label: 'Groceries / Produce', url: 'https://images.unsplash.com/photo-1523049673857-eb18f1d7b578?w=800' }
+  { label: 'Thrift Clothes / Flannel', url: 'https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=800' },
+  { label: 'Craft Beer / Cocktails', url: 'https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=800' }
 ];
 
 export default function AddDealModal({ 
   onClose, 
   onAddDeal, 
   pickedLocation, 
-  onStartPinPick 
+  onStartPinPick,
+  onShowToast
 }) {
   const [title, setTitle] = useState('');
   const [storeName, setStoreName] = useState('');
@@ -32,6 +33,10 @@ export default function AddDealModal({
   const [selectedCity, setSelectedCity] = useState(CITIES[0].name);
   const [tagsInput, setTagsInput] = useState('');
   
+  // Geocoding state
+  const [isGeocoding, setIsGeocoding] = useState(false);
+  const [geocodeMsg, setGeocodeMsg] = useState('');
+
   // Lat / Lng
   const [lat, setLat] = useState(pickedLocation ? pickedLocation.lat : CITIES[0].lat);
   const [lng, setLng] = useState(pickedLocation ? pickedLocation.lng : CITIES[0].lng);
@@ -59,6 +64,37 @@ export default function AddDealModal({
     if (cityObj && !pickedLocation) {
       setLat(cityObj.lat + (Math.random() - 0.5) * 0.02);
       setLng(cityObj.lng + (Math.random() - 0.5) * 0.02);
+    }
+  };
+
+  // Live Geocode Address using OpenStreetMap Nominatim API
+  const handleGeocodeAddress = async () => {
+    const query = `${address} ${selectedCity}`.trim();
+    if (!query) {
+      setGeocodeMsg('Please enter an address first.');
+      return;
+    }
+
+    try {
+      setIsGeocoding(true);
+      setGeocodeMsg('');
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`);
+      const data = await res.json();
+
+      if (data && data.length > 0) {
+        const foundLat = parseFloat(data[0].lat);
+        const foundLng = parseFloat(data[0].lon);
+        setLat(foundLat);
+        setLng(foundLng);
+        setGeocodeMsg(`📍 Located! Pin updated to (${foundLat.toFixed(4)}, ${foundLng.toFixed(4)})`);
+        if (onShowToast) onShowToast('Address geocoded successfully!', 'success');
+      } else {
+        setGeocodeMsg('Address not found. Please click "Pick Spot on Map" instead.');
+      }
+    } catch (err) {
+      setGeocodeMsg('Could not geocode address automatically. Please pick on map.');
+    } finally {
+      setIsGeocoding(false);
     }
   };
 
@@ -139,7 +175,6 @@ export default function AddDealModal({
 
     onAddDeal(newDealObj);
 
-    // Launch celebratory confetti
     confetti({
       particleCount: 100,
       spread: 70,
@@ -182,7 +217,7 @@ export default function AddDealModal({
               <label className="input-label">Item / Deal Title *</label>
               <input 
                 type="text" 
-                placeholder="e.g. $2.50 Jumbo Carne Asada Taco or $1.00 Espresso" 
+                placeholder="e.g. $2.99 Crispy BBQ Pork Bánh Mì or $4.50 Poutine" 
                 className="form-input"
                 required
                 value={title}
@@ -207,12 +242,12 @@ export default function AddDealModal({
               </div>
 
               <div className="form-group">
-                <label className="input-label">Deal Price ($) *</label>
+                <label className="input-label">Deal Price ($ CAD) *</label>
                 <input 
                   type="number" 
                   step="0.01"
                   min="0"
-                  placeholder="2.50 (0 for Free)" 
+                  placeholder="2.99 (0 for Free)" 
                   className="form-input"
                   required
                   value={price}
@@ -221,12 +256,12 @@ export default function AddDealModal({
               </div>
 
               <div className="form-group">
-                <label className="input-label">Regular Price ($)</label>
+                <label className="input-label">Regular Price ($ CAD)</label>
                 <input 
                   type="number" 
                   step="0.01"
                   min="0"
-                  placeholder="e.g. 6.00 (for % savings)" 
+                  placeholder="e.g. 7.50 (for % savings)" 
                   className="form-input"
                   value={regularPrice}
                   onChange={e => setRegularPrice(e.target.value)}
@@ -261,7 +296,7 @@ export default function AddDealModal({
                 <label className="input-label">Store / Place Name *</label>
                 <input 
                   type="text" 
-                  placeholder="e.g. Taqueria El Farolito" 
+                  placeholder="e.g. Bánh Mì Ba Lẹ" 
                   className="form-input"
                   value={storeName}
                   onChange={e => setStoreName(e.target.value)}
@@ -284,13 +319,25 @@ export default function AddDealModal({
 
             <div className="form-group mt-3">
               <label className="input-label">Address or Cross Streets</label>
-              <input 
-                type="text" 
-                placeholder="e.g. 2779 Mission St, San Francisco, CA" 
-                className="form-input"
-                value={address}
-                onChange={e => setAddress(e.target.value)}
-              />
+              <div className="flex gap-2">
+                <input 
+                  type="text" 
+                  placeholder="e.g. 354 Spadina Ave, Toronto, ON" 
+                  className="form-input"
+                  value={address}
+                  onChange={e => setAddress(e.target.value)}
+                />
+                <button 
+                  type="button" 
+                  className="geocode-btn shrink-0"
+                  onClick={handleGeocodeAddress}
+                  disabled={isGeocoding}
+                >
+                  {isGeocoding ? <Loader2 className="w-4 h-4 animate-spin inline mr-1" /> : <Search className="w-4 h-4 inline mr-1" />}
+                  Geocode
+                </button>
+              </div>
+              {geocodeMsg && <p className="text-xs text-indigo-600 font-semibold mt-1">{geocodeMsg}</p>}
             </div>
 
             {/* Map Pin Dropper Trigger */}
@@ -314,7 +361,6 @@ export default function AddDealModal({
           <div className="form-section mt-4">
             <h4 className="section-heading">3. Upload Photos & Images</h4>
 
-            {/* Drag and drop zone */}
             <div 
               className={`dropzone-box ${isDragOver ? 'drag-active' : ''}`}
               onDragOver={e => { e.preventDefault(); setIsDragOver(true); }}
@@ -339,7 +385,6 @@ export default function AddDealModal({
               />
             </div>
 
-            {/* Quick Sample Presets */}
             <div className="preset-photos-box mt-3">
               <span className="text-xs font-semibold text-gray-500 block mb-1.5">
                 Or pick sample photos:
@@ -358,7 +403,6 @@ export default function AddDealModal({
               </div>
             </div>
 
-            {/* Uploaded Photos Preview List */}
             {photos.length > 0 && (
               <div className="uploaded-photos-grid mt-3">
                 {photos.map((pUrl, pIdx) => (
@@ -382,7 +426,7 @@ export default function AddDealModal({
             <label className="input-label">Tags (comma separated)</label>
             <input 
               type="text" 
-              placeholder="Tacos, Mexican, CashOnly, Under$3" 
+              placeholder="BanhMi, Chinatown, CashOnly, Under$3" 
               className="form-input"
               value={tagsInput}
               onChange={e => setTagsInput(e.target.value)}

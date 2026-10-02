@@ -1,6 +1,7 @@
 import React from 'react';
 import { CATEGORIES } from '../data/initialDeals';
-import { ThumbsUp, ThumbsDown, Bookmark, Star, MapPin, Tag, Flame, ArrowUpRight } from 'lucide-react';
+import { calculateDistance } from '../utils/distance';
+import { ThumbsUp, ThumbsDown, Bookmark, Star, MapPin, Tag, Flame, Navigation } from 'lucide-react';
 
 export default function ItemCard({ 
   deal, 
@@ -9,7 +10,8 @@ export default function ItemCard({
   onToggleSave, 
   onUpvote, 
   onDownvote,
-  userVote 
+  userVote,
+  currentCenter
 }) {
   const categoryObj = CATEGORIES.find(c => c.id === deal.category) || CATEGORIES[0];
   const discountPercent = deal.regularPrice > deal.price 
@@ -21,6 +23,15 @@ export default function ItemCard({
     : null;
 
   const totalScore = deal.upvotes - deal.downvotes;
+  
+  // Calculate Hotness ratio
+  const totalVotes = deal.upvotes + deal.downvotes;
+  const hotnessRatio = totalVotes > 0 ? Math.round((deal.upvotes / totalVotes) * 100) : 100;
+
+  // Calculate distance
+  const distanceText = currentCenter 
+    ? calculateDistance(currentCenter.lat, currentCenter.lng, deal.lat, deal.lng) 
+    : null;
 
   return (
     <div className="item-card group" onClick={() => onSelectDeal(deal)}>
@@ -40,11 +51,15 @@ export default function ItemCard({
           <span>{categoryObj.label}</span>
         </div>
 
-        {/* Discount Badge */}
-        {discountPercent > 0 && (
+        {/* Discount / Hotness Badge */}
+        {discountPercent > 0 ? (
           <div className="card-discount-badge">
-            <Flame className="w-3.5 h-3.5 mr-0.5 fill-current" />
+            <Flame className="w-3.5 h-3.5 mr-0.5 fill-current inline" />
             {discountPercent}% OFF
+          </div>
+        ) : hotnessRatio >= 90 && (
+          <div className="card-hotness-badge">
+            🔥 {hotnessRatio}% HOT
           </div>
         )}
 
@@ -59,6 +74,14 @@ export default function ItemCard({
         >
           <Bookmark className={`w-4 h-4 ${isSaved ? 'fill-current' : ''}`} />
         </button>
+
+        {/* Distance Badge */}
+        {distanceText && (
+          <div className="card-distance-badge">
+            <Navigation className="w-3 h-3 inline mr-1" />
+            {distanceText}
+          </div>
+        )}
 
         {/* Price Tag Overlay */}
         <div className="card-price-tag">
@@ -78,7 +101,7 @@ export default function ItemCard({
         </div>
 
         <p className="card-store">
-          <MapPin className="w-3.5 h-3.5 text-gray-400 inline shrink-0 mr-1" />
+          <MapPin className="w-3.5 h-3.5 text-indigo-500 inline shrink-0 mr-1" />
           <span className="truncate">{deal.storeName || deal.address}</span>
         </p>
 
@@ -97,9 +120,9 @@ export default function ItemCard({
         <div className="card-footer">
           <div className="rating-info">
             {avgRating ? (
-              <span className="flex items-center gap-1 font-semibold text-amber-500">
-                <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
-                {avgRating} <span className="text-gray-400 text-xs font-normal">({deal.reviews.length})</span>
+              <span className="flex items-center gap-1 font-semibold text-amber-500 text-xs">
+                <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                {avgRating} <span className="text-gray-400 font-normal">({deal.reviews.length})</span>
               </span>
             ) : (
               <span className="text-gray-400 text-xs">No reviews yet</span>

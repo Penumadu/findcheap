@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import L from 'leaflet';
 import { CATEGORIES } from '../data/initialDeals';
-import { MapPin, Navigation, Compass, Plus, Star } from 'lucide-react';
+import { MapPin, Navigation, Compass, Layers, Maximize2 } from 'lucide-react';
 
 export default function MapView({ 
   deals, 
@@ -11,12 +11,15 @@ export default function MapView({
   onMapClick, 
   isAddingPinMode,
   selectedCategory,
-  mapTheme
+  mapTheme,
+  userLocation,
+  onToggleTheme
 }) {
   const mapContainerRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const markersRef = useRef({});
   const addPinMarkerRef = useRef(null);
+  const userMarkerRef = useRef(null);
 
   // Initialize Map
   useEffect(() => {
@@ -30,7 +33,6 @@ export default function MapView({
       });
 
       L.control.zoom({ position: 'bottomright' }).addTo(map);
-
       mapInstanceRef.current = map;
 
       // Handle map click when in add pin mode
@@ -52,7 +54,6 @@ export default function MapView({
     const map = mapInstanceRef.current;
     if (!map) return;
 
-    // Remove existing tile layers
     map.eachLayer((layer) => {
       if (layer instanceof L.TileLayer) {
         map.removeLayer(layer);
@@ -83,6 +84,53 @@ export default function MapView({
     }
   }, [center]);
 
+  // Handle fly to selected deal
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    if (!map || !selectedDeal) return;
+
+    map.flyTo([selectedDeal.lat, selectedDeal.lng], 15, {
+      animate: true,
+      duration: 1
+    });
+
+    // Open marker popup if exists
+    const marker = markersRef.current[selectedDeal.id];
+    if (marker) {
+      setTimeout(() => {
+        marker.openPopup();
+      }, 400);
+    }
+  }, [selectedDeal]);
+
+  // User Geolocation Radar Marker
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    if (!map) return;
+
+    if (userLocation && userLocation.lat && userLocation.lng) {
+      if (userMarkerRef.current) {
+        map.removeLayer(userMarkerRef.current);
+      }
+
+      const userHtml = `
+        <div class="user-radar-marker">
+          <div class="user-radar-ring"></div>
+          <div class="user-radar-dot"></div>
+        </div>
+      `;
+
+      const userIcon = L.divIcon({
+        html: userHtml,
+        className: 'user-marker-wrapper',
+        iconSize: [40, 40],
+        iconAnchor: [20, 20]
+      });
+
+      userMarkerRef.current = L.marker([userLocation.lat, userLocation.lng], { icon: userIcon }).addTo(map);
+    }
+  }, [userLocation]);
+
   // Render Deal Markers
   useEffect(() => {
     const map = mapInstanceRef.current;
@@ -95,7 +143,6 @@ export default function MapView({
     deals.forEach((deal) => {
       const categoryObj = CATEGORIES.find(c => c.id === deal.category) || CATEGORIES[0];
       const isSelected = selectedDeal && selectedDeal.id === deal.id;
-
       const priceText = deal.price === 0 ? 'FREE' : `$${deal.price.toFixed(2)}`;
       
       const iconHtml = `
@@ -119,7 +166,6 @@ export default function MapView({
 
       const marker = L.marker([deal.lat, deal.lng], { icon: customIcon }).addTo(map);
 
-      // Create popup content
       const avgRating = deal.reviews && deal.reviews.length > 0 
         ? (deal.reviews.reduce((acc, r) => acc + r.rating, 0) / deal.reviews.length).toFixed(1)
         : null;
@@ -175,7 +221,7 @@ export default function MapView({
       const addPinHtml = `
         <div class="add-pin-marker pulsing">
           <div class="add-pin-inner">
-            📍 Drop Spot
+            📍 Drop Spot Here
           </div>
         </div>
       `;
@@ -183,8 +229,8 @@ export default function MapView({
       const addIcon = L.divIcon({
         html: addPinHtml,
         className: 'add-pin-wrapper',
-        iconSize: [100, 40],
-        iconAnchor: [50, 40]
+        iconSize: [110, 40],
+        iconAnchor: [55, 40]
       });
 
       addPinMarkerRef.current = L.marker([isAddingPinMode.lat, isAddingPinMode.lng], { icon: addIcon }).addTo(map);
@@ -195,9 +241,39 @@ export default function MapView({
     }
   }, [isAddingPinMode]);
 
+  // Function to fit map bounds to all active deal markers
+  const handleFitBounds = () => {
+    const map = mapInstanceRef.current;
+    if (!map || deals.length === 0) return;
+
+    const bounds = L.latLngBounds(deals.map(d => [d.lat, d.lng]));
+    map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
+  };
+
   return (
     <div className="map-view-container">
       <div ref={mapContainerRef} className="leaflet-map-element" />
+
+      {/* Floating Map Controls Overlay */}
+      <div className="map-floating-controls">
+        <button 
+          className="map-floating-btn" 
+          onClick={handleFitBounds}
+          title="Fit all deal spots on map"
+        >
+          <Maximize2 className="w-4 h-4 mr-1 inline" />
+          <span className="hidden sm:inline">Fit All</span>
+        </button>
+
+        <button 
+          className="map-floating-btn" 
+          onClick={onToggleTheme}
+          title="Toggle Map Style"
+        >
+          <Layers className="w-4 h-4 mr-1 inline" />
+          <span className="hidden sm:inline">{mapTheme}</span>
+        </button>
+      </div>
 
       {isAddingPinMode && (
         <div className="map-instruction-banner">
