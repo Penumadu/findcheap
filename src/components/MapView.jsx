@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import L from 'leaflet';
 import { CATEGORIES } from '../data/initialDeals';
-import { MapPin, Navigation, Compass, Layers, Maximize2 } from 'lucide-react';
+import { MapPin, Navigation, Compass, Layers, Maximize2, RefreshCw } from 'lucide-react';
 
 export default function MapView({ 
   deals, 
@@ -29,11 +29,18 @@ export default function MapView({
       const map = L.map(mapContainerRef.current, {
         center: [center.lat, center.lng],
         zoom: 13,
-        zoomControl: false
+        zoomControl: false,
+        attributionControl: false
       });
 
       L.control.zoom({ position: 'bottomright' }).addTo(map);
+      L.control.attribution({ position: 'bottomleft', prefix: false }).addTo(map);
       mapInstanceRef.current = map;
+
+      // Ensure map tiles resize correctly
+      setTimeout(() => {
+        map.invalidateSize();
+      }, 250);
 
       // Handle map click when in add pin mode
       map.on('click', (e) => {
@@ -49,7 +56,22 @@ export default function MapView({
     };
   }, []);
 
-  // Tile layer update based on theme
+  // Trigger invalidateSize on container resize or window resize
+  useEffect(() => {
+    const handleResize = () => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.invalidateSize();
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    const interval = setInterval(handleResize, 1000);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      clearInterval(interval);
+    };
+  }, []);
+
+  // Tile layer update based on theme (Supports Google Maps tiles & OSM)
   useEffect(() => {
     const map = mapInstanceRef.current;
     if (!map) return;
@@ -60,17 +82,27 @@ export default function MapView({
       }
     });
 
-    let tileUrl = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
-    let attribution = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>';
+    let tileUrl = 'https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}'; // Google Maps Streets
+    let attribution = '&copy; <a href="https://www.google.com/maps">Google Maps</a>';
 
     if (mapTheme === 'dark') {
       tileUrl = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
+      attribution = '&copy; <a href="https://carto.com/">CARTO Dark</a> &copy; OpenStreetMap';
     } else if (mapTheme === 'satellite') {
-      tileUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
-      attribution = 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community';
+      tileUrl = 'https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}'; // Google Maps Satellite Hybrid
+      attribution = '&copy; <a href="https://www.google.com/maps">Google Satellite</a>';
+    } else if (mapTheme === 'osm') {
+      tileUrl = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
+      attribution = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>';
     }
 
-    L.tileLayer(tileUrl, { attribution, maxZoom: 19 }).addTo(map);
+    L.tileLayer(tileUrl, { 
+      attribution, 
+      maxZoom: 20,
+      subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
+    }).addTo(map);
+
+    map.invalidateSize();
   }, [mapTheme]);
 
   // Update center when city/center changes
@@ -81,6 +113,7 @@ export default function MapView({
         animate: true,
         duration: 1.2
       });
+      setTimeout(() => map.invalidateSize(), 300);
     }
   }, [center]);
 
@@ -94,7 +127,6 @@ export default function MapView({
       duration: 1
     });
 
-    // Open marker popup if exists
     const marker = markersRef.current[selectedDeal.id];
     if (marker) {
       setTimeout(() => {
@@ -136,7 +168,6 @@ export default function MapView({
     const map = mapInstanceRef.current;
     if (!map) return;
 
-    // Clear existing deal markers
     Object.values(markersRef.current).forEach(marker => map.removeLayer(marker));
     markersRef.current = {};
 
@@ -268,10 +299,10 @@ export default function MapView({
         <button 
           className="map-floating-btn" 
           onClick={onToggleTheme}
-          title="Toggle Map Style"
+          title="Switch Map Style (Google Maps / Satellite / Dark Mode)"
         >
           <Layers className="w-4 h-4 mr-1 inline" />
-          <span className="hidden sm:inline">{mapTheme}</span>
+          <span className="hidden sm:inline">Map: {mapTheme === 'light' ? 'Google Roads' : mapTheme === 'satellite' ? 'Google Satellite' : mapTheme}</span>
         </button>
       </div>
 
