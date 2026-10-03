@@ -82,22 +82,19 @@ export default function ItemCard({
 
         {/* Bottom Hero Price Plaque */}
         <div className="card-price-plaque">
-          <div className="price-stack">
-            <span className="price-lead-label">Deal Price</span>
-            <div className="price-row">
-              <span className="price-hero">
-                {deal.price === 0 ? 'FREE' : `$${deal.price.toFixed(2)}`}
-              </span>
-              {deal.regularPrice > deal.price && (
-                <span className="price-strikethrough">${deal.regularPrice.toFixed(2)}</span>
-              )}
-            </div>
+          <div className="price-row">
+            <span className="price-hero">
+              {deal.price === 0 ? 'FREE' : `$${deal.price.toFixed(2)}`}
+            </span>
+            {deal.regularPrice > deal.price && (
+              <span className="price-strikethrough">${deal.regularPrice.toFixed(2)}</span>
+            )}
           </div>
 
           {/* Distance Indicator */}
           {distanceText && (
             <div className="card-distance-tag">
-              <Navigation className="w-3 h-3 inline mr-1 text-rose-500" />
+              <Navigation className="w-3.5 h-3.5 inline mr-1 text-rose-500" />
               <span>{distanceText}</span>
             </div>
           )}
@@ -112,11 +109,11 @@ export default function ItemCard({
         {/* Store & City Address */}
         <div className="card-location-row">
           <MapPin className="w-3.5 h-3.5 text-rose-500 shrink-0 mr-1.5" />
-          <span className="font-semibold text-xs text-stone-800 dark:text-stone-200 truncate">
+          <span className="card-store-name truncate">
             {deal.storeName}
           </span>
-          <span className="card-dot-sep">•</span>
-          <span className="text-xs text-stone-500 dark:text-stone-400 truncate">
+          <span className="card-location-comma shrink-0">,</span>
+          <span className="card-city-name shrink-0">
             {deal.city}
           </span>
         </div>
@@ -138,17 +135,15 @@ export default function ItemCard({
           {/* Reviews & Star Rating */}
           <div className="card-rating-col">
             {avgRating ? (
-              <div className="flex items-center gap-1.5">
-                <div className="star-badge">
-                  <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-500 mr-1" />
-                  <span className="font-bold text-xs">{avgRating}</span>
-                </div>
-                <span className="text-[11px] text-stone-400">
+              <div className="card-rating-flex">
+                <Star className="w-4 h-4 shrink-0 mr-1" fill="#f59e0b" color="#f59e0b" />
+                <span className="card-rating-score">{avgRating}</span>
+                <span className="card-reviews-count">
                   ({deal.reviews.length} {deal.reviews.length === 1 ? 'review' : 'reviews'})
                 </span>
               </div>
             ) : (
-              <span className="text-[11px] text-stone-400 font-medium">New Spot</span>
+              <span className="card-new-spot-badge">★ New find</span>
             )}
           </div>
 

@@ -279,8 +279,8 @@ export default function ItemDetailModal({
             <div className="reviews-master-section">
               <div className="reviews-section-header">
                 <h3 className="section-title">
-                  <MessageSquare className="w-5 h-5 text-amber-500 inline mr-2" />
-                  Item Reviews ({reviews.length})
+                  <MessageSquare className="w-5 h-5 text-amber-500 shrink-0" />
+                  <span>Item Reviews ({reviews.length})</span>
                 </h3>
               </div>
 
@@ -288,15 +288,17 @@ export default function ItemDetailModal({
               <div className="rating-overview-box">
                 <div className="overall-score-col">
                   <div className="big-rating-number">{avgRating}</div>
-                  <div className="stars-row">
+                  <div className="stars-row flex items-center gap-1">
                     {[1, 2, 3, 4, 5].map(star => (
                       <Star 
                         key={star} 
-                        className={`w-4 h-4 ${star <= Math.round(avgRating) ? 'fill-amber-400 text-amber-400' : 'text-gray-300'}`} 
+                        className="w-5 h-5 shrink-0" 
+                        fill={star <= Math.round(avgRating) ? '#f59e0b' : '#e5e7eb'}
+                        color={star <= Math.round(avgRating) ? '#f59e0b' : '#d1d5db'}
                       />
                     ))}
                   </div>
-                  <span className="total-reviews-sub text-xs text-gray-500 mt-1">Based on {reviews.length} reviews</span>
+                  <span className="total-reviews-sub">Based on {reviews.length} {reviews.length === 1 ? 'review' : 'reviews'}</span>
                 </div>
 
                 <div className="rating-bars-col">
@@ -319,8 +321,8 @@ export default function ItemDetailModal({
               {/* Add Review Form */}
               <div className="add-review-card">
                 <h4 className="add-review-heading">
-                  <Sparkles className="w-4 h-4 text-indigo-500 inline mr-1.5" />
-                  Have you tried this item/place? Write a Review!
+                  <Sparkles className="w-5 h-5 text-indigo-500 shrink-0" />
+                  <span>Share your experience with this spot</span>
                 </h4>
 
                 {reviewSuccessMsg && (
@@ -345,10 +347,10 @@ export default function ItemDetailModal({
                         >
                           <Star 
                             className={`w-6 h-6 transition-transform ${
-                              star <= (hoverRating || newRating) 
-                                ? 'fill-amber-400 text-amber-400 scale-110' 
-                                : 'text-gray-300'
+                              star <= (hoverRating || newRating) ? 'scale-110' : ''
                             }`} 
+                            fill={star <= (hoverRating || newRating) ? '#f59e0b' : '#e5e7eb'}
+                            color={star <= (hoverRating || newRating) ? '#f59e0b' : '#d1d5db'}
                           />
                         </button>
                       ))}
@@ -391,7 +393,7 @@ export default function ItemDetailModal({
                         accept="image/*" 
                         multiple 
                         onChange={handleReviewPhotoUpload}
-                        className="hidden"
+                        style={{ display: 'none' }}
                       />
                     </label>
 
@@ -429,26 +431,26 @@ export default function ItemDetailModal({
                   className={`filter-pill ${reviewFilter === 'all' ? 'active' : ''}`}
                   onClick={() => setReviewFilter('all')}
                 >
-                  All Reviews ({reviews.length})
+                  All reviews ({reviews.length})
                 </button>
                 <button 
                   className={`filter-pill ${reviewFilter === 'photos' ? 'active' : ''}`}
                   onClick={() => setReviewFilter('photos')}
                 >
-                  With Photos
+                  With photos
                 </button>
                 <button 
                   className={`filter-pill ${reviewFilter === '5star' ? 'active' : ''}`}
                   onClick={() => setReviewFilter('5star')}
                 >
-                  5★ Ratings Only
+                  5★ ratings only
                 </button>
               </div>
 
               {/* Reviews List */}
               <div className="reviews-list">
                 {filteredReviews.length === 0 ? (
-                  <p className="no-reviews-text">No reviews found matching filter. Be the first to review!</p>
+                  <p className="no-reviews-text">No reviews found matching filter. Be the first to share your experience!</p>
                 ) : (
                   filteredReviews.map((rev) => (
                     <div key={rev.id} className="review-item-card">
@@ -464,20 +466,22 @@ export default function ItemDetailModal({
                               <span className="reviewer-name">{rev.userName}</span>
                               {rev.verifiedVisit && (
                                 <span className="verified-badge">
-                                  <CheckCircle2 className="w-3 h-3 text-emerald-500 inline mr-0.5" /> Verified Spotter
+                                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 inline mr-1" /> Verified Spotter
                                 </span>
                               )}
                             </div>
                             <div className="review-meta">
-                              <div className="stars-mini flex">
+                              <div className="stars-mini flex items-center gap-1">
                                 {[1, 2, 3, 4, 5].map(s => (
                                   <Star 
                                     key={s} 
-                                    className={`w-3.5 h-3.5 ${s <= rev.rating ? 'fill-amber-400 text-amber-400' : 'text-gray-300'}`} 
+                                    className="w-4 h-4 shrink-0" 
+                                    fill={s <= rev.rating ? '#f59e0b' : '#e5e7eb'}
+                                    color={s <= rev.rating ? '#f59e0b' : '#d1d5db'}
                                   />
                                 ))}
                               </div>
-                              <span className="review-date">• {rev.date}</span>
+                              <span className="review-date">{rev.date}</span>
                             </div>
                           </div>
                         </div>
@@ -500,7 +504,7 @@ export default function ItemDetailModal({
                           className="helpful-btn"
                           onClick={() => onVoteHelpful(deal.id, rev.id)}
                         >
-                          <ThumbsUp className="w-3.5 h-3.5 mr-1 inline" />
+                          <ThumbsUp className="w-4 h-4 mr-1.5 inline" />
                           Helpful ({rev.helpfulCount || 0})
                         </button>
                       </div>

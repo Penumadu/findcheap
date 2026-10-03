@@ -98,10 +98,10 @@ export default function MapView({
         {/* Current City / Spot Indicator Badge */}
         <div className="map-badge-city">
           <MapPin className="w-3.5 h-3.5 text-rose-500 mr-1.5 shrink-0" />
-          <span className="font-bold text-xs truncate max-w-[180px] sm:max-w-[260px]">
+          <span className="font-bold text-sm truncate max-w-[200px] sm:max-w-[280px]">
             {focusedDeal ? focusedDeal.storeName : (center?.name || 'Area Map')}
           </span>
-          <span className="text-[11px] text-gray-500 dark:text-gray-400 ml-1">
+          <span className="text-xs text-gray-500 dark:text-gray-400 ml-1.5 font-medium">
             ({deals.length} spots)
           </span>
         </div>
