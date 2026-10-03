@@ -1,10 +1,12 @@
-import React, { useEffect, useRef } from 'react';
-import L from 'leaflet';
+import React, { useState, useEffect, useMemo } from 'react';
 import { CATEGORIES } from '../data/initialDeals';
-import { MapPin, Navigation, Compass, Layers, Maximize2, RefreshCw } from 'lucide-react';
+import { 
+  MapPin, Navigation, Compass, Layers, Maximize2, ExternalLink, 
+  Map as MapIcon, Globe, Sparkles, Star, ChevronRight, X, ArrowUpRight
+} from 'lucide-react';
 
 export default function MapView({ 
-  deals, 
+  deals = [], 
   selectedDeal, 
   onSelectDeal, 
   center, 
@@ -15,339 +17,264 @@ export default function MapView({
   userLocation,
   onToggleTheme
 }) {
-  const mapContainerRef = useRef(null);
-  const mapInstanceRef = useRef(null);
-  const tileLayerRef = useRef(null);
-  const markersRef = useRef({});
-  const addPinMarkerRef = useRef(null);
-  const userMarkerRef = useRef(null);
+  // Provider mode: 'google-road', 'google-satellite', 'google-terrain', 'osm'
+  const [provider, setProvider] = useState('google-road');
+  const [zoomLevel, setZoomLevel] = useState(14);
+  const [activePinDeal, setActivePinDeal] = useState(null);
 
-  // Helper to set or update tile layer on map
-  const applyTileLayer = (map, theme) => {
-    if (!map) return;
-
-    if (tileLayerRef.current) {
-      map.removeLayer(tileLayerRef.current);
-      tileLayerRef.current = null;
-    }
-
-    let tileUrl = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png';
-    let attribution = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>';
-    let subdomains = ['a', 'b', 'c', 'd'];
-
-    if (theme === 'dark') {
-      tileUrl = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png';
-      attribution = '&copy; <a href="https://carto.com/">CARTO Dark</a> &copy; OpenStreetMap';
-      subdomains = ['a', 'b', 'c', 'd'];
-    } else if (theme === 'satellite') {
-      tileUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
-      attribution = '&copy; <a href="https://www.esri.com/">Esri World Imagery</a>';
-      subdomains = [];
-    } else if (theme === 'osm') {
-      tileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
-      attribution = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>';
-      subdomains = ['a', 'b', 'c'];
-    }
-
-    const tileOptions = {
-      attribution,
-      maxZoom: 19,
-      crossOrigin: true
-    };
-    if (subdomains.length > 0) {
-      tileOptions.subdomains = subdomains;
-    }
-
-    const layer = L.tileLayer(tileUrl, tileOptions);
-    layer.addTo(map);
-    tileLayerRef.current = layer;
-
-    map.invalidateSize();
-  };
-
-  // Initialize Map
+  // Sync active deal when selectedDeal prop changes
   useEffect(() => {
-    if (!mapContainerRef.current) return;
-
-    if (!mapInstanceRef.current) {
-      const map = L.map(mapContainerRef.current, {
-        center: [center.lat, center.lng],
-        zoom: 13,
-        zoomControl: false,
-        attributionControl: false
-      });
-
-      L.control.zoom({ position: 'bottomright' }).addTo(map);
-      L.control.attribution({ position: 'bottomleft', prefix: false }).addTo(map);
-
-      // Apply tile layer directly upon creation
-      applyTileLayer(map, mapTheme);
-
-      mapInstanceRef.current = map;
-
-      // Force immediate and delayed size invalidations for layout settling
-      setTimeout(() => map.invalidateSize(), 50);
-      setTimeout(() => map.invalidateSize(), 200);
-      setTimeout(() => map.invalidateSize(), 500);
-
-      // Handle map click when in add pin mode
-      map.on('click', (e) => {
-        onMapClick({ lat: e.latlng.lat, lng: e.latlng.lng });
-      });
-    }
-
-    return () => {
-      if (mapInstanceRef.current) {
-        mapInstanceRef.current.remove();
-        mapInstanceRef.current = null;
-        tileLayerRef.current = null;
-      }
-    };
-  }, []);
-
-  // Trigger invalidateSize on container resize using ResizeObserver & window resize
-  useEffect(() => {
-    const handleResize = () => {
-      if (mapInstanceRef.current) {
-        mapInstanceRef.current.invalidateSize();
-      }
-    };
-
-    window.addEventListener('resize', handleResize);
-
-    let resizeObserver = null;
-    if (mapContainerRef.current && window.ResizeObserver) {
-      resizeObserver = new ResizeObserver(() => {
-        if (mapInstanceRef.current) {
-          mapInstanceRef.current.invalidateSize();
-        }
-      });
-      resizeObserver.observe(mapContainerRef.current);
-    }
-
-    const interval = setInterval(handleResize, 1500);
-
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      if (resizeObserver && mapContainerRef.current) {
-        resizeObserver.unobserve(mapContainerRef.current);
-      }
-      clearInterval(interval);
-    };
-  }, []);
-
-  // Update tile layer when mapTheme changes
-  useEffect(() => {
-    if (mapInstanceRef.current) {
-      applyTileLayer(mapInstanceRef.current, mapTheme);
-    }
-  }, [mapTheme]);
-
-  // Update center when city/center changes
-  useEffect(() => {
-    const map = mapInstanceRef.current;
-    if (map && center) {
-      map.flyTo([center.lat, center.lng], 13, {
-        animate: true,
-        duration: 1.2
-      });
-      setTimeout(() => map.invalidateSize(), 300);
-    }
-  }, [center]);
-
-  // Handle fly to selected deal
-  useEffect(() => {
-    const map = mapInstanceRef.current;
-    if (!map || !selectedDeal) return;
-
-    map.flyTo([selectedDeal.lat, selectedDeal.lng], 15, {
-      animate: true,
-      duration: 1
-    });
-
-    const marker = markersRef.current[selectedDeal.id];
-    if (marker) {
-      setTimeout(() => {
-        marker.openPopup();
-      }, 400);
+    if (selectedDeal) {
+      setActivePinDeal(selectedDeal);
     }
   }, [selectedDeal]);
 
-  // User Geolocation Radar Marker
-  useEffect(() => {
-    const map = mapInstanceRef.current;
-    if (!map) return;
-
-    if (userLocation && userLocation.lat && userLocation.lng) {
-      if (userMarkerRef.current) {
-        map.removeLayer(userMarkerRef.current);
-      }
-
-      const userHtml = `
-        <div class="user-radar-marker">
-          <div class="user-radar-ring"></div>
-          <div class="user-radar-dot"></div>
-        </div>
-      `;
-
-      const userIcon = L.divIcon({
-        html: userHtml,
-        className: 'user-marker-wrapper',
-        iconSize: [40, 40],
-        iconAnchor: [20, 20]
-      });
-
-      userMarkerRef.current = L.marker([userLocation.lat, userLocation.lng], { icon: userIcon }).addTo(map);
+  // Determine current map center coordinates
+  const currentCoords = useMemo(() => {
+    if (activePinDeal) {
+      return { lat: activePinDeal.lat, lng: activePinDeal.lng, label: activePinDeal.title };
     }
-  }, [userLocation]);
-
-  // Render Deal Markers
-  useEffect(() => {
-    const map = mapInstanceRef.current;
-    if (!map) return;
-
-    Object.values(markersRef.current).forEach(marker => map.removeLayer(marker));
-    markersRef.current = {};
-
-    deals.forEach((deal) => {
-      const categoryObj = CATEGORIES.find(c => c.id === deal.category) || CATEGORIES[0];
-      const isSelected = selectedDeal && selectedDeal.id === deal.id;
-      const priceText = deal.price === 0 ? 'FREE' : `$${deal.price.toFixed(2)}`;
-      
-      const iconHtml = `
-        <div class="custom-map-marker ${isSelected ? 'selected' : ''}" style="--category-color: ${categoryObj.color}">
-          <div class="marker-pulse"></div>
-          <div class="marker-card">
-            <span class="marker-icon">${categoryObj.icon}</span>
-            <span class="marker-price">${priceText}</span>
-          </div>
-          <div class="marker-pin-tip"></div>
-        </div>
-      `;
-
-      const customIcon = L.divIcon({
-        html: iconHtml,
-        className: 'custom-leaflet-marker-wrapper',
-        iconSize: [60, 40],
-        iconAnchor: [30, 42],
-        popupAnchor: [0, -45]
-      });
-
-      const marker = L.marker([deal.lat, deal.lng], { icon: customIcon }).addTo(map);
-
-      const avgRating = deal.reviews && deal.reviews.length > 0 
-        ? (deal.reviews.reduce((acc, r) => acc + r.rating, 0) / deal.reviews.length).toFixed(1)
-        : null;
-
-      const popupHtml = `
-        <div class="map-popup-content">
-          <div class="popup-img-wrapper">
-            <img src="${deal.images[0] || 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400'}" alt="${deal.title}" />
-            <span class="popup-badge" style="background:${categoryObj.color}">${categoryObj.icon} ${categoryObj.label}</span>
-          </div>
-          <div class="popup-body">
-            <div class="popup-price-row">
-              <span class="popup-price">${deal.price === 0 ? 'FREE' : '$' + deal.price.toFixed(2)}</span>
-              ${deal.regularPrice > deal.price ? `<span class="popup-savings">Save ${Math.round(((deal.regularPrice - deal.price) / deal.regularPrice) * 100)}%</span>` : ''}
-            </div>
-            <h4 class="popup-title">${deal.title}</h4>
-            <p class="popup-store">📍 ${deal.storeName || deal.address}</p>
-            ${avgRating ? `<div class="popup-rating">⭐ ${avgRating} (${deal.reviews.length} reviews)</div>` : ''}
-            <button class="popup-btn" id="btn-view-${deal.id}">View Details & Reviews</button>
-          </div>
-        </div>
-      `;
-
-      marker.bindPopup(popupHtml, { maxWidth: 280, className: 'custom-leaflet-popup' });
-
-      marker.on('popupopen', () => {
-        const btn = document.getElementById(`btn-view-${deal.id}`);
-        if (btn) {
-          btn.addEventListener('click', () => {
-            onSelectDeal(deal);
-          });
-        }
-      });
-
-      marker.on('click', () => {
-        onSelectDeal(deal);
-      });
-
-      markersRef.current[deal.id] = marker;
-    });
-  }, [deals, selectedDeal]);
-
-  // Handle temporary add pin marker
-  useEffect(() => {
-    const map = mapInstanceRef.current;
-    if (!map) return;
-
-    if (isAddingPinMode && isAddingPinMode.lat && isAddingPinMode.lng) {
-      if (addPinMarkerRef.current) {
-        map.removeLayer(addPinMarkerRef.current);
-      }
-
-      const addPinHtml = `
-        <div class="add-pin-marker pulsing">
-          <div class="add-pin-inner">
-            📍 Drop Spot Here
-          </div>
-        </div>
-      `;
-
-      const addIcon = L.divIcon({
-        html: addPinHtml,
-        className: 'add-pin-wrapper',
-        iconSize: [110, 40],
-        iconAnchor: [55, 40]
-      });
-
-      addPinMarkerRef.current = L.marker([isAddingPinMode.lat, isAddingPinMode.lng], { icon: addIcon }).addTo(map);
-      map.flyTo([isAddingPinMode.lat, isAddingPinMode.lng], 15);
-    } else if (addPinMarkerRef.current) {
-      map.removeLayer(addPinMarkerRef.current);
-      addPinMarkerRef.current = null;
+    if (center && center.lat && center.lng) {
+      return { lat: center.lat, lng: center.lng, label: center.name || 'Selected City' };
     }
-  }, [isAddingPinMode]);
+    return { lat: 43.6532, lng: -79.3832, label: 'Toronto, ON' };
+  }, [activePinDeal, center]);
 
-  // Function to fit map bounds to all active deal markers
-  const handleFitBounds = () => {
-    const map = mapInstanceRef.current;
-    if (!map || deals.length === 0) return;
+  // Construct map iframe URL based on provider
+  const mapIframeUrl = useMemo(() => {
+    const { lat, lng } = currentCoords;
+    
+    if (provider === 'osm') {
+      const delta = 0.04;
+      const bbox = `${lng - delta},${lat - delta / 1.5},${lng + delta},${lat + delta / 1.5}`;
+      return `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat},${lng}`;
+    }
 
-    const bounds = L.latLngBounds(deals.map(d => [d.lat, d.lng]));
-    map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
+    // Google Maps Embed (m = roadmap, k = satellite, p = terrain)
+    let mapType = 'm';
+    if (provider === 'google-satellite') mapType = 'k';
+    if (provider === 'google-terrain') mapType = 'p';
+
+    const query = `${lat},${lng}`;
+    return `https://maps.google.com/maps?q=${encodeURIComponent(query)}&t=${mapType}&z=${zoomLevel}&ie=UTF8&iwloc=&output=embed`;
+  }, [currentCoords, provider, zoomLevel]);
+
+  // Apple Maps Navigation URL
+  const appleMapsUrl = useMemo(() => {
+    const target = activePinDeal || currentCoords;
+    const name = activePinDeal ? activePinDeal.storeName : (center?.name || 'FindCheap Spot');
+    return `https://maps.apple.com/?q=${encodeURIComponent(name)}&ll=${target.lat},${target.lng}`;
+  }, [activePinDeal, currentCoords, center]);
+
+  // Google Maps Full Web URL
+  const googleMapsUrl = useMemo(() => {
+    const target = activePinDeal || currentCoords;
+    const query = activePinDeal 
+      ? `${activePinDeal.storeName}, ${activePinDeal.address}` 
+      : `${target.lat},${target.lng}`;
+    return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+  }, [activePinDeal, currentCoords]);
+
+  // Handle pin click in overlay carousel
+  const handleSpotClick = (deal) => {
+    setActivePinDeal(deal);
+    onSelectDeal(deal);
   };
 
   return (
-    <div className="map-view-container">
-      <div ref={mapContainerRef} className="leaflet-map-element" />
+    <div className="modern-map-wrapper">
+      {/* Top Floating Control Bar */}
+      <div className="map-top-bar">
+        <div className="map-provider-pills">
+          <button 
+            type="button"
+            className={`map-pill-btn ${provider === 'google-road' ? 'active' : ''}`}
+            onClick={() => setProvider('google-road')}
+            title="Google Maps Streets View"
+          >
+            <MapIcon className="w-3.5 h-3.5 mr-1 inline" />
+            <span>Google Roads</span>
+          </button>
 
-      {/* Floating Map Controls Overlay */}
-      <div className="map-floating-controls">
-        <button 
-          className="map-floating-btn" 
-          onClick={handleFitBounds}
-          title="Fit all deal spots on map"
-        >
-          <Maximize2 className="w-4 h-4 mr-1 inline" />
-          <span className="hidden sm:inline">Fit All</span>
-        </button>
+          <button 
+            type="button"
+            className={`map-pill-btn ${provider === 'google-satellite' ? 'active' : ''}`}
+            onClick={() => setProvider('google-satellite')}
+            title="Google Maps High-Res Satellite"
+          >
+            <Globe className="w-3.5 h-3.5 mr-1 inline" />
+            <span>Satellite</span>
+          </button>
 
-        <button 
-          className="map-floating-btn" 
-          onClick={onToggleTheme}
-          title="Switch Map Style (Google Maps / Satellite / Dark Mode)"
-        >
-          <Layers className="w-4 h-4 mr-1 inline" />
-          <span className="hidden sm:inline">Map: {mapTheme === 'light' ? 'Google Roads' : mapTheme === 'satellite' ? 'Google Satellite' : mapTheme}</span>
-        </button>
+          <button 
+            type="button"
+            className={`map-pill-btn ${provider === 'osm' ? 'active' : ''}`}
+            onClick={() => setProvider('osm')}
+            title="OpenStreetMap View"
+          >
+            <Compass className="w-3.5 h-3.5 mr-1 inline" />
+            <span>OpenStreet</span>
+          </button>
+        </div>
+
+        {/* Quick External Map Launcher (Apple Maps / Google Maps) */}
+        <div className="map-external-links">
+          <a 
+            href={appleMapsUrl} 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            className="external-map-btn apple-maps"
+            title="Open exact location in Apple Maps"
+          >
+            <span className="font-semibold text-xs">🍏 Apple Maps</span>
+            <ArrowUpRight className="w-3.5 h-3.5 ml-0.5" />
+          </a>
+
+          <a 
+            href={googleMapsUrl} 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            className="external-map-btn google-maps"
+            title="Open exact location in Google Maps"
+          >
+            <span className="font-semibold text-xs">🗺️ Google Maps</span>
+            <ArrowUpRight className="w-3.5 h-3.5 ml-0.5" />
+          </a>
+        </div>
       </div>
 
+      {/* Main Interactive Map Frame */}
+      <div className="map-frame-container">
+        <iframe 
+          key={`${provider}-${currentCoords.lat}-${currentCoords.lng}-${zoomLevel}`}
+          title="FindCheap Interactive Map"
+          src={mapIframeUrl}
+          className="map-iframe"
+          loading="lazy"
+          allowFullScreen
+        />
+
+        {/* Pin Location Target Overlay */}
+        <div className="map-center-target-badge">
+          <div className="target-dot" />
+          <span className="target-text">
+            📍 {activePinDeal ? activePinDeal.storeName : (center?.name || 'Map Center')}
+          </span>
+        </div>
+      </div>
+
+      {/* Interactive Floating Deal Pins Strip */}
+      <div className="map-deals-floating-strip">
+        <div className="floating-strip-header">
+          <span className="strip-title">
+            🎯 {deals.length} Cheap Spots in {center?.name || 'Area'}
+          </span>
+          <span className="strip-hint">Click any spot to fly map & view directions</span>
+        </div>
+
+        <div className="floating-pins-scroll">
+          {deals.slice(0, 15).map((deal) => {
+            const isSelected = (activePinDeal && activePinDeal.id === deal.id) || (selectedDeal && selectedDeal.id === deal.id);
+            const catObj = CATEGORIES.find(c => c.id === deal.category) || CATEGORIES[0];
+            const priceText = deal.price === 0 ? 'FREE' : `$${deal.price.toFixed(2)}`;
+
+            return (
+              <button
+                key={deal.id}
+                type="button"
+                className={`floating-deal-pin-chip ${isSelected ? 'selected' : ''}`}
+                onClick={() => handleSpotClick(deal)}
+              >
+                <span className="pin-chip-icon">{catObj.icon}</span>
+                <div className="pin-chip-content">
+                  <div className="pin-chip-top">
+                    <span className="pin-chip-price">{priceText}</span>
+                    {deal.regularPrice > deal.price && (
+                      <span className="pin-chip-savings">
+                        Save {Math.round(((deal.regularPrice - deal.price) / deal.regularPrice) * 100)}%
+                      </span>
+                    )}
+                  </div>
+                  <span className="pin-chip-title">{deal.title}</span>
+                  <span className="pin-chip-store">📍 {deal.storeName}</span>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Active Selected Deal Detail Card Overlay */}
+      {activePinDeal && (
+        <div className="active-spot-flyout-card">
+          <button 
+            type="button" 
+            className="flyout-close-btn"
+            onClick={() => setActivePinDeal(null)}
+          >
+            <X className="w-4 h-4" />
+          </button>
+
+          <div className="flyout-content-flex">
+            <img 
+              src={activePinDeal.images[0] || 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400'} 
+              alt={activePinDeal.title}
+              className="flyout-thumbnail" 
+            />
+
+            <div className="flyout-details-col">
+              <div className="flex items-center justify-between mb-1">
+                <span className="flyout-price font-extrabold text-rose-500 text-lg">
+                  {activePinDeal.price === 0 ? 'FREE' : `$${activePinDeal.price.toFixed(2)}`}
+                </span>
+                <span className="flyout-category-badge">
+                  {CATEGORIES.find(c => c.id === activePinDeal.category)?.icon} {activePinDeal.city}
+                </span>
+              </div>
+
+              <h4 className="flyout-title">{activePinDeal.title}</h4>
+              <p className="flyout-address">📍 {activePinDeal.storeName} • {activePinDeal.address}</p>
+
+              <div className="flyout-actions-row mt-2.5">
+                <button 
+                  type="button"
+                  className="flyout-details-btn"
+                  onClick={() => onSelectDeal(activePinDeal)}
+                >
+                  Inspect Full Reviews
+                  <ChevronRight className="w-4 h-4 ml-1 inline" />
+                </button>
+
+                <a 
+                  href={appleMapsUrl} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="flyout-map-btn"
+                  title="Apple Maps Directions"
+                >
+                  🍏 Apple
+                </a>
+
+                <a 
+                  href={googleMapsUrl} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="flyout-map-btn"
+                  title="Google Maps Directions"
+                >
+                  🗺️ Google
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add Pin Notice */}
       {isAddingPinMode && (
-        <div className="map-instruction-banner">
-          <MapPin className="icon animate-bounce" />
-          <span>Click anywhere on the map to set the location for your cheap spot!</span>
+        <div className="map-add-pin-guide">
+          <Sparkles className="w-4 h-4 text-indigo-500 animate-spin mr-1.5" />
+          <span>Showing location on map! Fill in the address in the form to confirm coordinates.</span>
         </div>
       )}
     </div>
