@@ -17,9 +17,53 @@ export default function MapView({
 }) {
   const mapContainerRef = useRef(null);
   const mapInstanceRef = useRef(null);
+  const tileLayerRef = useRef(null);
   const markersRef = useRef({});
   const addPinMarkerRef = useRef(null);
   const userMarkerRef = useRef(null);
+
+  // Helper to set or update tile layer on map
+  const applyTileLayer = (map, theme) => {
+    if (!map) return;
+
+    if (tileLayerRef.current) {
+      map.removeLayer(tileLayerRef.current);
+      tileLayerRef.current = null;
+    }
+
+    let tileUrl = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png';
+    let attribution = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>';
+    let subdomains = ['a', 'b', 'c', 'd'];
+
+    if (theme === 'dark') {
+      tileUrl = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png';
+      attribution = '&copy; <a href="https://carto.com/">CARTO Dark</a> &copy; OpenStreetMap';
+      subdomains = ['a', 'b', 'c', 'd'];
+    } else if (theme === 'satellite') {
+      tileUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
+      attribution = '&copy; <a href="https://www.esri.com/">Esri World Imagery</a>';
+      subdomains = [];
+    } else if (theme === 'osm') {
+      tileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+      attribution = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>';
+      subdomains = ['a', 'b', 'c'];
+    }
+
+    const tileOptions = {
+      attribution,
+      maxZoom: 19,
+      crossOrigin: true
+    };
+    if (subdomains.length > 0) {
+      tileOptions.subdomains = subdomains;
+    }
+
+    const layer = L.tileLayer(tileUrl, tileOptions);
+    layer.addTo(map);
+    tileLayerRef.current = layer;
+
+    map.invalidateSize();
+  };
 
   // Initialize Map
   useEffect(() => {
@@ -35,12 +79,16 @@ export default function MapView({
 
       L.control.zoom({ position: 'bottomright' }).addTo(map);
       L.control.attribution({ position: 'bottomleft', prefix: false }).addTo(map);
+
+      // Apply tile layer directly upon creation
+      applyTileLayer(map, mapTheme);
+
       mapInstanceRef.current = map;
 
-      // Ensure map tiles resize correctly
-      setTimeout(() => {
-        map.invalidateSize();
-      }, 250);
+      // Force immediate and delayed size invalidations for layout settling
+      setTimeout(() => map.invalidateSize(), 50);
+      setTimeout(() => map.invalidateSize(), 200);
+      setTimeout(() => map.invalidateSize(), 500);
 
       // Handle map click when in add pin mode
       map.on('click', (e) => {
@@ -52,57 +100,47 @@ export default function MapView({
       if (mapInstanceRef.current) {
         mapInstanceRef.current.remove();
         mapInstanceRef.current = null;
+        tileLayerRef.current = null;
       }
     };
   }, []);
 
-  // Trigger invalidateSize on container resize or window resize
+  // Trigger invalidateSize on container resize using ResizeObserver & window resize
   useEffect(() => {
     const handleResize = () => {
       if (mapInstanceRef.current) {
         mapInstanceRef.current.invalidateSize();
       }
     };
+
     window.addEventListener('resize', handleResize);
-    const interval = setInterval(handleResize, 1000);
+
+    let resizeObserver = null;
+    if (mapContainerRef.current && window.ResizeObserver) {
+      resizeObserver = new ResizeObserver(() => {
+        if (mapInstanceRef.current) {
+          mapInstanceRef.current.invalidateSize();
+        }
+      });
+      resizeObserver.observe(mapContainerRef.current);
+    }
+
+    const interval = setInterval(handleResize, 1500);
+
     return () => {
       window.removeEventListener('resize', handleResize);
+      if (resizeObserver && mapContainerRef.current) {
+        resizeObserver.unobserve(mapContainerRef.current);
+      }
       clearInterval(interval);
     };
   }, []);
 
-  // Tile layer update based on theme (Supports Google Maps tiles & OSM)
+  // Update tile layer when mapTheme changes
   useEffect(() => {
-    const map = mapInstanceRef.current;
-    if (!map) return;
-
-    map.eachLayer((layer) => {
-      if (layer instanceof L.TileLayer) {
-        map.removeLayer(layer);
-      }
-    });
-
-    let tileUrl = 'https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}'; // Google Maps Streets
-    let attribution = '&copy; <a href="https://www.google.com/maps">Google Maps</a>';
-
-    if (mapTheme === 'dark') {
-      tileUrl = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
-      attribution = '&copy; <a href="https://carto.com/">CARTO Dark</a> &copy; OpenStreetMap';
-    } else if (mapTheme === 'satellite') {
-      tileUrl = 'https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}'; // Google Maps Satellite Hybrid
-      attribution = '&copy; <a href="https://www.google.com/maps">Google Satellite</a>';
-    } else if (mapTheme === 'osm') {
-      tileUrl = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
-      attribution = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>';
+    if (mapInstanceRef.current) {
+      applyTileLayer(mapInstanceRef.current, mapTheme);
     }
-
-    L.tileLayer(tileUrl, { 
-      attribution, 
-      maxZoom: 20,
-      subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
-    }).addTo(map);
-
-    map.invalidateSize();
   }, [mapTheme]);
 
   // Update center when city/center changes
