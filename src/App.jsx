@@ -24,7 +24,8 @@ import {
   addReviewToDB, 
   voteDealInDB 
 } from './db/databaseManager';
-import { Plus } from 'lucide-react';
+import { getDistanceKm } from './utils/distance';
+import { Plus, Navigation, MapPin, Sparkles } from 'lucide-react';
 import './App.css';
 
 export default function App() {
@@ -101,17 +102,24 @@ export default function App() {
     }
   });
 
-  // Map Theme & View Mode
-  const [mapTheme, setMapTheme] = useState('light'); // light, dark, satellite
+  // Theme & View Mode
+  const [mapTheme, setMapTheme] = useState(() => {
+    try {
+      return localStorage.getItem('findcheap_theme') || 'light';
+    } catch (e) {
+      return 'light';
+    }
+  });
   const [viewMode, setViewMode] = useState('split'); // split, map, grid
   const [selectedCity, setSelectedCity] = useState(CITIES[0]); // Toronto, ON
   const [center, setCenter] = useState({ lat: CITIES[0].lat, lng: CITIES[0].lng });
 
-  // Filters & Search
+  // Filters, Search & Radius Scope
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [maxPrice, setMaxPrice] = useState(100);
   const [sortBy, setSortBy] = useState('upvotes');
+  const [cityScope, setCityScope] = useState('all'); // 'local' (<=25km), 'nearby' (<=75km), 'all'
 
   // Modals & Drawers
   const [selectedDeal, setSelectedDeal] = useState(null);
@@ -393,8 +401,8 @@ export default function App() {
     }
   };
 
-  // Filter & Sort Deals
-  const filteredDeals = useMemo(() => {
+  // Base category, price, and search filtered deals
+  const baseFilteredDeals = useMemo(() => {
     return deals.filter(deal => {
       if (selectedCategory !== 'all' && deal.category !== selectedCategory) {
         return false;
@@ -407,13 +415,45 @@ export default function App() {
         const matchesTitle = deal.title.toLowerCase().includes(q);
         const matchesStore = deal.storeName?.toLowerCase().includes(q);
         const matchesDesc = deal.description?.toLowerCase().includes(q);
+        const matchesCity = deal.city?.toLowerCase().includes(q);
         const matchesTags = deal.tags?.some(t => t.toLowerCase().includes(q));
-        if (!matchesTitle && !matchesStore && !matchesDesc && !matchesTags) {
+        if (!matchesTitle && !matchesStore && !matchesDesc && !matchesCity && !matchesTags) {
           return false;
         }
       }
       return true;
+    });
+  }, [deals, selectedCategory, maxPrice, searchQuery]);
+
+  // Radius counts relative to current selected city / map center
+  const scopeCounts = useMemo(() => {
+    let local = 0;
+    let nearby = 0;
+    let all = baseFilteredDeals.length;
+    baseFilteredDeals.forEach(d => {
+      const dist = getDistanceKm(center.lat, center.lng, d.lat, d.lng);
+      if (dist <= 25) local++;
+      if (dist <= 75) nearby++;
+    });
+    return { local, nearby, all };
+  }, [baseFilteredDeals, center]);
+
+  // Final filtered and sorted deals
+  const filteredDeals = useMemo(() => {
+    return baseFilteredDeals.filter(deal => {
+      if (cityScope === 'local') {
+        const dist = getDistanceKm(center.lat, center.lng, deal.lat, deal.lng);
+        return dist <= 25;
+      }
+      if (cityScope === 'nearby') {
+        const dist = getDistanceKm(center.lat, center.lng, deal.lat, deal.lng);
+        return dist <= 75;
+      }
+      return true;
     }).sort((a, b) => {
+      if (sortBy === 'distance') {
+        return getDistanceKm(center.lat, center.lng, a.lat, a.lng) - getDistanceKm(center.lat, center.lng, b.lat, b.lng);
+      }
       if (sortBy === 'upvotes') {
         return (b.upvotes - b.downvotes) - (a.upvotes - a.downvotes);
       }
@@ -435,12 +475,23 @@ export default function App() {
       }
       return 0;
     });
-  }, [deals, selectedCategory, maxPrice, searchQuery, sortBy]);
+  }, [baseFilteredDeals, cityScope, center, sortBy]);
 
   // Saved Deals Object List
   const savedDeals = useMemo(() => {
     return deals.filter(d => savedDealIds.includes(d.id));
   }, [deals, savedDealIds]);
+
+  // Theme toggle with localStorage persistence
+  const handleToggleTheme = () => {
+    setMapTheme(prev => {
+      const next = prev === 'dark' ? 'light' : 'dark';
+      try {
+        localStorage.setItem('findcheap_theme', next);
+      } catch (e) {}
+      return next;
+    });
+  };
 
   return (
     <div className={`app-shell ${mapTheme === 'dark' ? 'dark-mode' : ''} ${viewMode === 'grid' ? 'view-grid-mode' : ''}`}>
@@ -457,11 +508,7 @@ export default function App() {
         onOpenAddModal={() => setIsAddModalOpen(true)}
         onLocateUser={handleLocateUser}
         mapTheme={mapTheme}
-        onToggleTheme={() => {
-          if (mapTheme === 'light') setMapTheme('dark');
-          else if (mapTheme === 'dark') setMapTheme('satellite');
-          else setMapTheme('light');
-        }}
+        onToggleTheme={handleToggleTheme}
         currentUser={currentUser}
         onOpenAuthModal={() => setIsAuthModalOpen(true)}
         onLogout={() => {
@@ -496,11 +543,7 @@ export default function App() {
               selectedCategory={selectedCategory}
               mapTheme={mapTheme}
               userLocation={userLocation}
-              onToggleTheme={() => {
-                if (mapTheme === 'light') setMapTheme('dark');
-                else if (mapTheme === 'dark') setMapTheme('satellite');
-                else setMapTheme('light');
-              }}
+              onToggleTheme={handleToggleTheme}
             />
           </div>
         )}
@@ -509,10 +552,54 @@ export default function App() {
         {(viewMode === 'grid' || viewMode === 'split') && (
           <div className="deals-panel-wrapper">
             <div className="deals-panel-header">
-              <h2 className="panel-title">
-                {selectedCategory === 'all' ? 'All Cheap Spots & Deals' : `${CATEGORIES.find(c => c.id === selectedCategory)?.icon} ${CATEGORIES.find(c => c.id === selectedCategory)?.label}`}
-              </h2>
-              <span className="panel-sub">Click any card to inspect full photos, reviews, & map directions</span>
+              <div className="deals-header-top-row">
+                <div>
+                  <h2 className="panel-title">
+                    {selectedCategory === 'all' 
+                      ? (cityScope === 'local' 
+                          ? `Spots in ${selectedCity.name.split(',')[0]} & Local (≤25km)` 
+                          : cityScope === 'nearby' 
+                            ? `Spots in Greater ${selectedCity.name.split(',')[0]} Area` 
+                            : `All Canadian Bargains & Gems`) 
+                      : `${CATEGORIES.find(c => c.id === selectedCategory)?.icon} ${CATEGORIES.find(c => c.id === selectedCategory)?.label}`}
+                  </h2>
+                  <p className="panel-sub">
+                    {cityScope === 'local' 
+                      ? `Showing ${filteredDeals.length} verified spots within 25km of ${selectedCity.name.split(',')[0]}`
+                      : cityScope === 'nearby'
+                        ? `Showing ${filteredDeals.length} spots in GTA & regional driving distance`
+                        : `Showing all ${filteredDeals.length} community verified cheap spots across Canada`}
+                  </p>
+                </div>
+                
+                {/* Radius Scope Selector Pills */}
+                <div className="city-scope-pills-row">
+                  <button 
+                    type="button"
+                    className={`scope-pill ${cityScope === 'local' ? 'active' : ''}`}
+                    onClick={() => setCityScope('local')}
+                    title={`Within 25km of ${selectedCity.name}`}
+                  >
+                    📍 {selectedCity.name.split(',')[0]} ({scopeCounts.local})
+                  </button>
+                  <button 
+                    type="button"
+                    className={`scope-pill ${cityScope === 'nearby' ? 'active' : ''}`}
+                    onClick={() => setCityScope('nearby')}
+                    title="Within 75km (regional GTA / Ontario)"
+                  >
+                    🚗 Regional ({scopeCounts.nearby})
+                  </button>
+                  <button 
+                    type="button"
+                    className={`scope-pill ${cityScope === 'all' ? 'active' : ''}`}
+                    onClick={() => setCityScope('all')}
+                    title="All spots in Canada"
+                  >
+                    🇨🇦 Canada ({scopeCounts.all})
+                  </button>
+                </div>
+              </div>
             </div>
 
             {filteredDeals.length === 0 ? (

@@ -1103,7 +1103,7 @@ export const INITIAL_DEALS = [
     lng: -73.5960,
     city: "Montreal, QC",
     images: [
-      "https://images.unsplash.com/photo-1585478259715-876a6a81ae08?w=800&auto=format&fit=crop&q=80"
+      "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=800&auto=format&fit=crop&q=80"
     ],
     upvotes: 520,
     downvotes: 4,

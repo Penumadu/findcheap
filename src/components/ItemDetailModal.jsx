@@ -130,9 +130,13 @@ export default function ItemDetailModal({
             {/* Main Active Image View */}
             <div className="main-gallery-image-wrapper">
               <img 
-                src={deal.images[activeImageIndex] || deal.images[0] || 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800'} 
+                src={deal.images[activeImageIndex] || deal.images[0] || 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=800'} 
                 alt={deal.title}
                 className="main-gallery-img"
+                onError={(e) => {
+                  e.currentTarget.onerror = null;
+                  e.currentTarget.src = 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=800';
+                }}
               />
               <span className="gallery-cat-badge" style={{ backgroundColor: categoryObj.color }}>
                 {categoryObj.icon} {categoryObj.label}
@@ -153,7 +157,14 @@ export default function ItemDetailModal({
                     className={`thumb-btn ${idx === activeImageIndex ? 'active' : ''}`}
                     onClick={() => setActiveImageIndex(idx)}
                   >
-                    <img src={imgUrl} alt={`Thumbnail ${idx + 1}`} />
+                    <img 
+                      src={imgUrl} 
+                      alt={`Thumbnail ${idx + 1}`} 
+                      onError={(e) => {
+                        e.currentTarget.onerror = null;
+                        e.currentTarget.src = 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=200';
+                      }}
+                    />
                   </button>
                 ))}
               </div>
@@ -162,21 +173,30 @@ export default function ItemDetailModal({
             {/* Location & Directions Card */}
             <div className="location-info-card">
               <div className="location-card-header">
-                <MapPin className="w-5 h-5 text-indigo-500 shrink-0" />
+                <MapPin className="w-5 h-5 text-rose-500 shrink-0 mt-0.5" />
                 <div>
                   <h4 className="store-name">{deal.storeName || 'Spot Location'}</h4>
                   <p className="store-address">{deal.address}</p>
                 </div>
               </div>
-              <a 
-                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((deal.storeName ? deal.storeName + ' ' : '') + deal.address)}`} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="directions-btn"
-              >
-                <ExternalLink className="w-4 h-4 mr-1.5 inline" />
-                Get Directions in Google Maps
-              </a>
+              <div className="modal-directions-btn-group">
+                <a 
+                  href={`https://maps.apple.com/?q=${encodeURIComponent((deal.storeName ? deal.storeName + ' ' : '') + deal.address)}&ll=${deal.lat},${deal.lng}`} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="modal-direct-btn apple"
+                >
+                  🍏 Open Apple Maps
+                </a>
+                <a 
+                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((deal.storeName ? deal.storeName + ' ' : '') + deal.address)}`} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="modal-direct-btn google"
+                >
+                  🗺️ Google Maps
+                </a>
+              </div>
             </div>
 
             {/* Posted By Card */}

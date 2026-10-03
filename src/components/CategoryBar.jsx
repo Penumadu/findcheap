@@ -64,6 +64,7 @@ export default function CategoryBar({
               onChange={(e) => onSortByChange(e.target.value)}
             >
               <option value="upvotes">🔥 Most Popular</option>
+              <option value="distance">📍 Nearest to Map Center</option>
               <option value="cheapest">💰 Cheapest First</option>
               <option value="savings">🎁 Highest Savings %</option>
               <option value="rating">⭐ Highest Rated</option>
