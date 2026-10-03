@@ -443,7 +443,7 @@ export default function App() {
   }, [deals, savedDealIds]);
 
   return (
-    <div className={`app-shell ${mapTheme === 'dark' ? 'dark-mode' : ''}`}>
+    <div className={`app-shell ${mapTheme === 'dark' ? 'dark-mode' : ''} ${viewMode === 'grid' ? 'view-grid-mode' : ''}`}>
       {/* Top Navigation Header */}
       <Header 
         searchQuery={searchQuery}
